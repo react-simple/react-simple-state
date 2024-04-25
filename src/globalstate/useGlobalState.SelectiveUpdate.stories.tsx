@@ -88,7 +88,7 @@ interface ComponentProps {
 
 const Component = (props: ComponentProps) => {
 	// this is not a state, in real app we only set it once at the beginning
-	REACT_SIMPLE_UTIL.LOG_LEVEL = props.logLevel;
+	REACT_SIMPLE_UTIL.LOGGING.LOG_LEVEL = props.logLevel;
 
 	logInfo("Component: render", props);
 

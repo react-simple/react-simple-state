@@ -1,4 +1,5 @@
-import { StateChangeArgs, StateChangeSubscriptions, StateEntry } from "types";
+import { Nullable } from "@react-simple/react-simple-util";
+import { StateChangeArgs, StateChangeSubscription, StateEntry } from "types";
 
 export interface StateContextData {
 	readonly contextId: string;
@@ -17,10 +18,10 @@ export interface ContextState {
 	contextState: { [stateKey: string]: ContextStateEntry<unknown> };
 
 	// context level subscriptions
-	readonly contextStateSubscriptions: StateChangeSubscriptions<ContextStateChangeArgs<unknown>>;
+	readonly contextStateSubscriptions: { [uniqueId: string]: Nullable<StateChangeSubscription<ContextStateChangeArgs<unknown>>> };
 }
 
 export interface ContextGlobalState {
 	readonly rootState: { [contextId: string]: ContextState };
-	readonly rootStateSubscriptions: StateChangeSubscriptions<ContextStateChangeArgs<unknown>>;
+	readonly rootStateSubscriptions: { [uniqueId: string]: Nullable<StateChangeSubscription<ContextStateChangeArgs<unknown>>> };
 };

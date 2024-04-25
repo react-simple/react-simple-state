@@ -6,13 +6,11 @@ export interface StateChangeArgs<State> {
 	newState: State;
 }
 
-export interface StateChangeSubscriptions<StateChangeArgs> {
-	[uniqueId: string]: Nullable<{
-		onStateUpdated: (args: StateChangeArgs) => void;
+export interface StateChangeSubscription<StateChangeArgs> {
+	readonly onStateUpdated: (args: StateChangeArgs) => void;
 
-		// true to get all update, false to get no updates, function to get updates selectively
-		getUpdates: ValueOrCallbackWithArgs<StateChangeArgs, boolean>;
-	}>
+	// true to get all update, false to get no updates, function to get updates selectively
+	readonly getUpdates: ValueOrCallbackWithArgs<StateChangeArgs, boolean>;
 }
 
 export interface StateEntry<State, TStateChangeArgs = StateChangeArgs<State>> {
@@ -20,5 +18,5 @@ export interface StateEntry<State, TStateChangeArgs = StateChangeArgs<State>> {
 	state: State;
 
 	// subscribed hooks to this entry to be updated on change
-	readonly stateSubscriptions: StateChangeSubscriptions<TStateChangeArgs>;
+	readonly stateSubscriptions: { [uniqueId: string]: Nullable<StateChangeSubscription<TStateChangeArgs>> };
 }

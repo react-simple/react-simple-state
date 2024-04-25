@@ -180,3 +180,9 @@ with a default value. It returns the *setGlobalContextState()* function to set a
 - **useContextStateRoot**: This hook returns the root context-state with all context ids and state keys withing contexts included and subscribes to
 any global-state changes. State is always returned as-it-is, there is no initialization with a default value.
 It returns the *setGlobalContextState()* function to set any state.
+
+# Links
+
+- How to Set Up Rollup to Run React?: https://www.codeguage.com/blog/setup-rollup-for-react
+- Storybook with absolute paths: https://stackoverflow.com/questions/51771077/storybook-with-absolute-paths
+- Storybook Canvas: 'ReferenceError: react is not defined': https://stackoverflow.com/questions/74995855/storybook-canvas-referenceerror-react-is-not-defined
