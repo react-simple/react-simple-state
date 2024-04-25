@@ -1,0 +1,7 @@
+export const DEFAULT_ROOT_CONTEXT_ID = "ROOT_CONTEXT";
+
+export const REACT_SIMPLE_STATE: {
+	readonly ROOT_CONTEXT_ID: string
+} = {
+	ROOT_CONTEXT_ID: DEFAULT_ROOT_CONTEXT_ID
+};

@@ -1,0 +1,64 @@
+{
+  "name": "@react-simple/react-simple-state",
+  "version": "0.3.0",
+  "description": "React Simple! State Library",
+  "author": "Mihály Tringel",
+  "license": "MIT",
+  "type": "module",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "repository": "git://github.com/react-simple/react-simple-state",
+  "keywords": [
+    "react",
+    "state",
+    "global state",
+    "react global state",
+    "react context",
+    "react context state"
+  ],
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.esm.js",
+  "source": "src/index.ts",
+  "scripts": {
+    "build": "rollup -c",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
+  },
+  "peerDependencies": {
+    "@react-simple/react-simple-ui": "^0.3.0",
+    "@react-simple/react-simple-util": "^0.3.0",
+    "react": "^18.2.0",
+    "tslib": "^2.6.2"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.24.4",
+    "@babel/preset-env": "^7.24.4",
+    "@babel/preset-react": "^7.24.1",
+    "@babel/preset-typescript": "^7.24.1",
+    "@chromatic-com/storybook": "^1.3.3",
+    "@react-simple/react-simple-ui": "^0.3.0",
+    "@react-simple/react-simple-util": "^0.3.0",
+    "@rollup/plugin-babel": "^6.0.4",
+    "@storybook/addon-essentials": "^8.0.8",
+    "@storybook/addon-interactions": "^8.0.8",
+    "@storybook/addon-links": "^8.0.8",
+    "@storybook/addon-onboarding": "^8.0.8",
+    "@storybook/addon-webpack5-compiler-swc": "^1.0.2",
+    "@storybook/blocks": "^8.0.8",
+    "@storybook/react": "^8.0.8",
+    "@storybook/react-webpack5": "^8.0.8",
+    "@storybook/test": "^8.0.8",
+    "@types/react": "^18.2.79",
+    "babel-loader": "^9.1.3",
+    "babel-plugin-module-resolver": "^5.0.1",
+    "chromatic": "^11.3.0",
+    "react": "^18.2.0",
+    "rollup": "^4.14.3",
+    "rollup-plugin-peer-deps-external": "^2.2.4",
+    "rollup-plugin-ts": "^3.4.5",
+    "storybook": "^8.0.8",
+    "tslib": "^2.6.2",
+    "typescript": "^5.4.5"
+  }
+}
