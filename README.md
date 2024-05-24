@@ -109,7 +109,7 @@ Internal functions are not exported by the package.
 - **useGlobalState&lt;State&gt;({ *stateKey, getUpdates, defaultValue, subscriberId?, merge?* })**: 
 	- Returns [*state*, *setState()*] result from global-state by ***stateKey***.
 	- Always returns the current state or the default state.
-	- Subscribes to state changes so when global-state with the same ***stateKey*** it will get updated.
+	- Subscribes to state changes so when global-state with the same ***stateKey*** changes it will get updated.
 	- The parent component will get updated as long as the **getUpdates** argument is *true* or does return *true*.
 	- ***getUpdates*** is either:
 		- *true* to react to all updates
@@ -178,12 +178,12 @@ the event is fired the actual state will be read.
 	- Initializes the state entry in context-state by ***contextId*** and ***stateKey*** and will update all subscribed components.
 	- This function can be used in event handlers or in components which do not need to be updated on state changes therefore using the **useContextState()** hook would generate unnecessary updates.
 	- The argument must be a complete state object since no marging will happen, *undefined* and *null* members will be set in state.
-	- This function is to be called from component initializers.
+	- This function is to be called from **component initializers**.
 
 - **removeGlobalContextState(*contextIds, stateKeys*)**:
 	- Removes state entries with the specified ***clientIds*** and optional ***stateKeys*** from the context-state.
 	- **Does not** update the subscribed components.
-	- This function is to be called from component finalizers.
+	- This function is to be called from **component finalizers**.
 
 #### Internal functions
 
@@ -199,7 +199,7 @@ Internal functions are not exported by the package.
 	- Also registers the entry in the context-state.
 	- It contains the list of *subscribers* and the list of *state entries* by state key underneath the context.
 
-- **getGlobalContextEntry&lt;State&gt;(*contextId, stateKey*)**: 
+- **getGlobalContextStateEntry&lt;State&gt;(*contextId, stateKey*)**: 
 	- Returns a context-state entry by ***contextId*** and ***stateKey*** as-it-is.
 	- Can be uninitialized and undefined.
 	- It contains the list of *subscribers* too.
@@ -214,7 +214,7 @@ after initialization, if needed.
 
 - **useContextState&lt;State&gt;({ *stateKey, getUpdates, defaultValue, contextId?, merge?* })**:
 	- Returns [*state*, *setState()*] value from context-state by ***contextId*** and ***stateKey***. 
-	- ***contextId*** is optional and if is not specified then it will be automatically picked up from the closest **&lt;SectionContext&gt;** in DOM hierarchy. (The parent context in which the current component is placed.) If there is no such context then root-context is used.
+	- ***contextId*** is optional and if is not specified then it will be automatically picked up from the closest **&lt;SectionContext&gt;** component in DOM hierarchy. (The parent context in which the current component is placed.) If there is no such context then root-context is used.
 	- Always returns the current state or the default state.
 	- Subscribes to state changes so when context-state with the same ***contextId*** and ***stateKey*** gets updated the parent component will get updated too as long as ***getUpdates*** is *true* or returns *true*.
 	- ***getUpdates*** is either:
