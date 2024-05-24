@@ -1,11 +1,12 @@
 import type { Meta } from '@storybook/react';
 import { LOG_LEVELS, LogLevel, REACT_SIMPLE_UTIL, StorybookComponent, logInfo } from '@react-simple/react-simple-util';
 import { Stack, Cluster, ObjectRenderer } from '@react-simple/react-simple-ui';
-import { getGlobalContextStateRoot, initGlobalContextState, removeGlobalContextState } from './functions';
+import { initGlobalContextState, removeGlobalContextState } from './functions';
 import { useContextState } from './useContextState';
 import { useContextStateRoot } from './useContextStateRoot';
 import { useEffect } from 'react';
 import { REACT_SIMPLE_STATE } from 'data';
+import { getGlobalContextStateRoot } from './internal/functions';
 
 const TITLE = "Context state / Root context only";
 const DESC = <>

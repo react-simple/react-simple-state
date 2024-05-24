@@ -2,9 +2,10 @@ import type { Meta } from '@storybook/react';
 import { useGlobalState } from './useGlobalState';
 import { LOG_LEVELS, LogLevel, REACT_SIMPLE_UTIL, StorybookComponent, logInfo } from '@react-simple/react-simple-util';
 import { Stack, Cluster, ObjectRenderer } from '@react-simple/react-simple-ui';
-import { getGlobalStateRoot, initGlobalState, removeGlobalState } from './functions';
+import { initGlobalState, removeGlobalState } from './functions';
 import { useGlobalStateRoot } from './useGlobalStateRoot';
 import { useEffect } from 'react';
+import { getGlobalStateRoot } from './internal/functions';
 
 const TITLE = "Global state / Simple global state";
 const DESC = <>The form state is global. When field values change <strong>all components</strong> get updated. (See console log.)</>;

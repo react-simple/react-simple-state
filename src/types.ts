@@ -1,4 +1,5 @@
 import { Nullable, ValueOrCallbackWithArgs } from "@react-simple/react-simple-util";
+import { ReactSimpleStateDependencyInjection } from "types.di";
 
 export interface StateChangeArgs<State> {
 	stateKey: string;
@@ -19,4 +20,9 @@ export interface StateEntry<State, TStateChangeArgs = StateChangeArgs<State>> {
 
 	// subscribed hooks to this entry to be updated on change
 	readonly stateSubscriptions: { [uniqueId: string]: Nullable<StateChangeSubscription<TStateChangeArgs>> };
+}
+
+export interface ReactSimpleState {
+	readonly ROOT_CONTEXT_ID: string;
+	readonly DI: ReactSimpleStateDependencyInjection;
 }

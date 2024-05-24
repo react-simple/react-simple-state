@@ -1,8 +1,8 @@
 import { StateChangeArgs, StateEntry } from "types";
 import { logTrace } from "@react-simple/react-simple-util";
-import { GLOBAL_STATE } from "./globalstate.data";
-import { GLOBAL_CONTEXT_STATE } from "./contextstate.data";
 import { ContextStateChangeArgs, ContextStateEntry } from "contextstate/types";
+import { getGlobalStateRoot } from "globalstate/internal/functions";
+import { getGlobalContextStateRoot } from "contextstate/internal/functions";
 
 // Internal artifacts are not exported
 
@@ -26,7 +26,7 @@ export const notifySubscribers = <State>(stateEntry: StateEntry<State>, args: St
 	}
 
 	// GLOBAL_STATE subscriptions
-	for (const sub of Object.values(GLOBAL_STATE.rootStateSubscriptions)) {
+	for (const sub of Object.values(getGlobalStateRoot().rootStateSubscriptions)) {
 		if (sub && sub.getUpdates !== false && (sub.getUpdates === true || sub.getUpdates(args))) {
 			sub.onStateUpdated(args);
 		}
@@ -34,7 +34,7 @@ export const notifySubscribers = <State>(stateEntry: StateEntry<State>, args: St
 };
 
 export const notifyContextSubscribers = <State>(stateEntry: ContextStateEntry<State>, args: ContextStateChangeArgs<State>) => {
-	const context = GLOBAL_CONTEXT_STATE.rootState[stateEntry.contextId];
+	const context = getGlobalContextStateRoot().rootState[stateEntry.contextId];
 	logTrace("[notifyContextSubscribers]", { stateEntry, args, context });
 
 	// state key level subscriptions
@@ -54,7 +54,7 @@ export const notifyContextSubscribers = <State>(stateEntry: ContextStateEntry<St
 	}
 
 	// GLOBAL_CONTEXT_STATE subscriptions
-	for (const sub of Object.values(GLOBAL_CONTEXT_STATE.rootStateSubscriptions)) {
+	for (const sub of Object.values(getGlobalContextStateRoot().rootStateSubscriptions)) {
 		if (sub && sub.getUpdates !== false && (sub.getUpdates === true || sub.getUpdates(args))) {
 			sub.onStateUpdated(args);
 		}

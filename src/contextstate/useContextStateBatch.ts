@@ -62,9 +62,13 @@ export function useContextStateBatch(props: UseContextStateBatchProps): UseConte
 			else {
 				// subscribe at context level (for the entire context regardles of stateKey)
 				contextIds.forEach(contextId => {
-					getGlobalContextEntry(contextId).contextStateSubscriptions[uniqueId] = {
-						getUpdates,
-						onStateUpdated: handleStateUpdated
+					const entry = getGlobalContextEntry(contextId);
+
+					if (entry) {
+						entry.contextStateSubscriptions[uniqueId] = {
+							getUpdates,
+							onStateUpdated: handleStateUpdated
+						};
 					}
 				});
 			}
@@ -81,7 +85,11 @@ export function useContextStateBatch(props: UseContextStateBatchProps): UseConte
 				} else {
 					// unsubscribe at context level (for the entire context regardles of stateKey)
 					contextIds.forEach(contextId => {
-						delete getGlobalContextEntry(contextId).contextStateSubscriptions[uniqueId];
+						const entry = getGlobalContextEntry(contextId);
+
+						if (entry) {
+							delete entry.contextStateSubscriptions[uniqueId];
+						}
 					});
 				}
 			}

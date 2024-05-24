@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 import { ValueOrCallbackWithArgs, logTrace, useForceUpdate, useUniqueId } from "@react-simple/react-simple-util";
 import { ContextGlobalState, ContextStateChangeArgs } from "./types";
-import { GLOBAL_CONTEXT_STATE } from "internal/contextstate.data";
 import { setGlobalContextState } from "./functions";
+import { getGlobalContextStateRoot } from "./internal/functions";
 
 // By calling useContextStateRoot() the parent component subscribes to any changes within any contexts (regardless of stateKey); read-only access.
 // By default the closest <StateContext> is used in the DOM hierarchy, but it can be overriden by specifying an exact contextId.
@@ -24,34 +24,36 @@ export function useContextStateRoot(props: UseContextStateRootProps): UseContext
 	const uniqueId = useUniqueId({ prefix: subscriberId }); // generate permanent uniqueId for this hook instance
 	const forceUpdate = useForceUpdate();
 
+	const globalContextState = getGlobalContextStateRoot();
+
 	// local function called by other hooks via subscription on state changes to update this hook and its parent component
 	const handleStateUpdated = () => {
-		logTrace("[useContextStateRoot.handleStateUpdated]", { props, uniqueId, GLOBAL_CONTEXT_STATE });
+		logTrace("[useContextStateRoot.handleStateUpdated]", { props, uniqueId, globalContextState });
 		forceUpdate();
 	};
 
-	logTrace("[useContextStateRoot]", { props, uniqueId, GLOBAL_CONTEXT_STATE });
+	logTrace("[useContextStateRoot]", { props, uniqueId, globalContextState });
 
 	// subscribe/unsubscribe
 	useEffect(
 		() => {
 				// Initialize
-				GLOBAL_CONTEXT_STATE.rootStateSubscriptions[uniqueId] = {
+			globalContextState.rootStateSubscriptions[uniqueId] = {
 					getUpdates,
 					onStateUpdated: handleStateUpdated
 				};
 
-				logTrace("[useContextStateRoot.initialize]", { props, uniqueId, GLOBAL_CONTEXT_STATE });
+			logTrace("[useContextStateRoot.initialize]", { props, uniqueId, globalContextState });
 
 			return () => {
 				// Finalize
-				delete GLOBAL_CONTEXT_STATE!.rootStateSubscriptions[uniqueId];
+				delete globalContextState!.rootStateSubscriptions[uniqueId];
 			}
 		},
 		[]);
 
 	return [
-		GLOBAL_CONTEXT_STATE,
+		globalContextState,
 		setGlobalContextState
 	];
 }

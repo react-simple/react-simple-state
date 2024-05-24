@@ -64,10 +64,6 @@ State can be read and written using functions instead of hooks. However, unlike 
 get updated when state changes so the DOM cannot react. However, using these functions in event handlers (like *onClick*) is perfectly safe since when 
 the event is fired the actual state will be read.
 
-- **getGlobalStateRoot()**:
-	- Returns the global-state root object (**GlobalState** type) which can be read and modified, however, it is not advised to do so, only for development and testing purposes.
-	- Does not subscribe to state changes as neither of the functions do.
-
 - **getGlobalState&lt;State&gt;(*stateKey, defaultValue*)**:
 	- Returns state value from global-state by ***stateKey***.
 	- It always returns the current state or the default state.
@@ -93,6 +89,10 @@ the event is fired the actual state will be read.
 #### Internal functions
 
 Internal functions are not exported by the package.
+
+- **getGlobalStateRoot()**:
+	- Returns the global-state root object (**GlobalState** type) which can be read and modified, however, it is not advised to do so, only for development and testing purposes.
+	- Does not subscribe to state changes as neither of the functions do.
 
 - **getGlobalStateEntry&lt;State&gt;(*stateKey*)**:
 	- Returns a global-state entry by ***stateKey*** as-it-is.
@@ -159,10 +159,6 @@ State can be read and written using functions instead of hooks. However, unlike 
 get updated when state changes so the DOM cannot react. However, using these functions in event handlers (like *onClick*) is perfectly safe since when 
 the event is fired the actual state will be read.
 
-- **getGlobalContextStateRoot()**:
-	- Returns the context-state root object (*ContextGlobalState* type) which can be read and modified, however, it is not advised, only for development and testing purposes.
-	- Does not subscribe to state changes as neither of the functions do.
-
 - **getGlobalContextState&lt;State&gt;(*contextId, stateKey, defaultValue*)**:
 	- Returns state value from context-state by ***contextId*** and ***stateKey***.
 	- It always returns the current state or the default state.
@@ -188,6 +184,10 @@ the event is fired the actual state will be read.
 #### Internal functions
 
 Internal functions are not exported by the package.
+
+- **getGlobalContextStateRoot()**:
+	- Returns the context-state root object (*ContextGlobalState* type) which can be read and modified, however, it is not advised, only for development and testing purposes.
+	- Does not subscribe to state changes as neither of the functions do.
 
 - **getGlobalContextEntry(*contextId*)**: 
 	- Returns a context-state entry by ***contextId*** as-it-is.
