@@ -32,7 +32,7 @@ const ChildComponent = (props: {
 		subscriberId: scope
 	});
 
-	logInfo(`${scope}: render`, { props, formValues });
+	logInfo(`[${scope}]: render`, { props, formValues });
 
 	return (
 		<Stack>
@@ -71,7 +71,7 @@ const Summary = () => {
 		getUpdates: true
 	});
 
-	logInfo(`${scope}: render`, { formValues, contextStateRoot });
+	logInfo(`[${scope}]: render`, { formValues, contextStateRoot });
 
 	return (
 		<Stack>
@@ -92,7 +92,7 @@ const Component = (props: ComponentProps) => {
 	// this is not a state, in real app we only set it once at the beginning
 	REACT_SIMPLE_UTIL.LOGGING.LOG_LEVEL = props.logLevel;
 
-	logInfo("Component: render", props);
+	logInfo("[Component]: render", props);
 
 	// optional step: this is the root component, we initialize the state here and will remove it when finalizing
 	useEffect(

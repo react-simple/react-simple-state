@@ -1,8 +1,9 @@
 import { useEffect } from "react";
 import { StateReturn, ValueOrCallback, ValueOrCallbackWithArgs, logTrace, useForceUpdate, useUniqueId } from "@react-simple/react-simple-util";
-import { getOrCreateGlobalContextStateEntry, removeGlobalContextState, setGlobalContextState } from "./functions";
+import { removeGlobalContextState, setGlobalContextState } from "./functions";
 import { useStateContextId } from "./StateContext";
 import { ContextStateChangeArgs } from "./types";
+import { getOrCreateGlobalContextStateEntry } from "./internal/functions";
 
 // By calling useContextState() the parent component subscribes to context state changes according to the specified getUpdates value.
 // useContextState() always returns a state, either the existing one or the default value.
@@ -37,11 +38,11 @@ export function useContextState<State>(props: UseContextStateProps<State>): Stat
 
 	// local function called by other hooks via subscription on state changes to update this hook and its parent component
 	const handleStateUpdated = () => {
-		logTrace("react-simple-state: useContextState.handleStateUpdated", { props, uniqueId, contextId, stateEntry });
+		logTrace("[useContextState.handleStateUpdated]", { props, uniqueId, contextId, stateEntry });
 		forceUpdate();
 	};
 
-	logTrace("react-simple-state: useContextState", { props, uniqueId, contextId, stateEntry });
+	logTrace("[useContextState]", { props, uniqueId, contextId, stateEntry });
 
 	// subscribe/unsubscribe
 	useEffect(
@@ -52,7 +53,7 @@ export function useContextState<State>(props: UseContextStateProps<State>): Stat
 				onStateUpdated: handleStateUpdated
 			};
 
-			logTrace("react-simple-state: useContextState.initialize", { props, uniqueId, contextId, stateEntry });
+			logTrace("[useContextState.initialize]", { props, uniqueId, contextId, stateEntry });
 
 			return () => {
 				// Finalize

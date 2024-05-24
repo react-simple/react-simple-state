@@ -1,7 +1,8 @@
 import { useEffect } from "react";
 import { ValueOrCallbackWithArgs, convertArrayToDictionary, logTrace, useForceUpdate, useUniqueId } from "@react-simple/react-simple-util";
-import { getOrCreateGlobalStateEntry, setGlobalState } from "./functions";
+import { setGlobalState } from "./functions";
 import { StateChangeArgs } from "types";
+import { getOrCreateGlobalStateEntry } from "./internal/functions";
 
 // By calling useGlobalStateBatch() the parent component subscribes to state changes of multiple state keys according to the specified getUpdates value.
 // useGlobalStateBatch() does not always return a state, the returned state can be undefined, if not yet set.
@@ -32,11 +33,11 @@ export function useGlobalStateBatch(props: UseGlobalStateBatchProps): UseGlobalS
 
 	// local function called by other hooks via subscription on state changes to update this hook and its parent component
 	const handleStateUpdated = () => {
-		logTrace(`${scope}: handleStateUpdated`, { props, uniqueId, stateEntries });
+		logTrace(`[${scope}]: handleStateUpdated`, { props, uniqueId, stateEntries });
 		forceUpdate();
 	};
 
-	logTrace(scope, { props, uniqueId, stateEntries });
+	logTrace(`[${scope}]`, { props, uniqueId, stateEntries });
 
 	// subscribe/unsubscribe
 	useEffect(
@@ -49,7 +50,7 @@ export function useGlobalStateBatch(props: UseGlobalStateBatchProps): UseGlobalS
 				};
 			});
 
-			logTrace(`${scope}: initialize`, { props, uniqueId, stateEntries });
+			logTrace(`[${scope}]: initialize`, { props, uniqueId, stateEntries });
 
 			return () => {
 				// Finalize

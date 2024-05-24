@@ -26,11 +26,11 @@ export function useGlobalStateRoot(props: UseGlobalStateRootProps): UseGlobalSta
 
 	// local function called by other hooks via subscription on state changes to update this hook and its parent component
 	const handleStateUpdated = () => {
-		logTrace(`${scope}: handleStateUpdated`, { props, uniqueId, GLOBAL_STATE });
+		logTrace(`[${scope}]: handleStateUpdated`, { props, uniqueId, GLOBAL_STATE });
 		forceUpdate();
 	};
 
-	logTrace(scope, { props, uniqueId, GLOBAL_STATE });
+	logTrace(`[${scope}]`, { props, uniqueId, GLOBAL_STATE });
 
 	// subscribe/unsubscribe
 	useEffect(
@@ -41,7 +41,7 @@ export function useGlobalStateRoot(props: UseGlobalStateRootProps): UseGlobalSta
 					onStateUpdated: handleStateUpdated
 				};
 
-				logTrace(`${scope}: initialize`, { props, uniqueId, GLOBAL_STATE });
+				logTrace(`[${scope}]: initialize`, { props, uniqueId, GLOBAL_STATE });
 
 			return () => {
 				// Finalize

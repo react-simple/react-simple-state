@@ -1,40 +1,13 @@
-import { StateEntry } from "types";
 import {
-	Nullable, ValueOrCallback, ValueOrCallbackWithArgs, getResolvedArray, getResolvedCallbackValue, getResolvedCallbackValueWithArgs, logDebug, logTrace
+	ValueOrCallback, ValueOrCallbackWithArgs, getResolvedArray, getResolvedCallbackValue, getResolvedCallbackValueWithArgs, logDebug, logTrace
 } from "@react-simple/react-simple-util";
 import { mergeState, notifySubscribers } from "internal/functions";
 import { GLOBAL_STATE } from "internal/globalstate.data";
+import { getGlobalStateEntry, getOrCreateGlobalStateEntry } from "./internal/functions";
 
 export const getGlobalStateRoot = () => {
 	return GLOBAL_STATE;
 };
-
-// Gets the current global state as it is (nullable), but the caller component/hook won't get updated on state changes. Suitable for event handlers.
-// Use the useGlobalState() hook to get the parent component/hook updated on state changes.
-export const getGlobalStateEntry = <State>(stateKey: string) => {
-	return GLOBAL_STATE.rootState[stateKey] as Nullable<StateEntry<State | undefined>>;
-};
-
-// Gets the current global state as it is (nullable), but the caller component/hook won't get updated on state changes. Suitable for event handlers.
-// Use the useGlobalState() hook to get the parent component/hook updated on state changes.
-export function getOrCreateGlobalStateEntry<State>(stateKey: string, defaultValue: ValueOrCallback<State>): StateEntry<State> {
-	let stateEntry = getGlobalStateEntry<State>(stateKey);
-
-	if (!stateEntry) {
-		stateEntry = {
-			stateKey,
-			state: getResolvedCallbackValue(defaultValue),
-			stateSubscriptions: {}
-		};
-
-		GLOBAL_STATE.rootState[stateKey] = stateEntry as StateEntry<unknown>;
-	}
-	else if (!stateEntry.state) {
-		stateEntry.state = getResolvedCallbackValue(defaultValue);
-	}
-
-	return stateEntry as StateEntry<State>;
-}
 
 // Gets the current global state, but the caller component/hook won't get updated on state changes. Suitable for event handlers.
 // Use the useGlobalState() hook to get the parent component/hook updated on state changes.
@@ -67,7 +40,7 @@ export const setGlobalState = <State>(
 	// set new state
 	stateEntry.state = newState;
 
-	logDebug(`[react-simple-state] setGlobalState ${stateKey}`, { args, oldState, newState, stateEntry });
+	logDebug(`[setGlobalState] ${stateKey}`, { args, oldState, newState, stateEntry });
 	notifySubscribers(stateEntry, { stateKey, oldState, newState });
 	return newState;
 };
@@ -80,11 +53,11 @@ export const initGlobalState = <State>(stateKey: string, state: ValueOrCallback<
 	// calculate new state
 	const newState = getResolvedCallbackValue(state); // no merging, it's a complete state
 	const stateEntry = getOrCreateGlobalStateEntry<State>(stateKey, newState);
-	
+
 	// set new state
 	stateEntry.state = newState;
 
-	logDebug(`[react-simple-state] initGlobalState ${stateKey}`, { stateKey, state, oldState, newState, stateEntry });
+	logDebug(`[initGlobalState] ${stateKey}`, { stateKey, state, oldState, newState, stateEntry });
 	notifySubscribers(stateEntry!, { stateKey, oldState, newState });
 	return newState;
 };
@@ -94,11 +67,11 @@ export const initGlobalState = <State>(stateKey: string, state: ValueOrCallback<
 // Use initGlobalState() to reset the state, but keep the subscriptions.
 // (Also, unlike initContextState(), subscribers won't get notified on the state change; it's completely silent. It's for finalizers.)
 export const removeGlobalState = (stateKeys: string | string[]) => {
-	logDebug("[react-simple-state] removeGlobalState", { stateKeys });
+	logDebug("[removeGlobalState]", { stateKeys });
 
 	for (const stateKey of getResolvedArray(stateKeys)) {
 		if (getGlobalStateEntry(stateKey)) {
-			logTrace(`[react-simple-state] removeGlobalState ${stateKey}`, { stateKey });
+			logTrace(`[removeGlobalState] ${stateKey}`, { stateKey });
 
 			// notifySubscribers() is not called intentionally here
 

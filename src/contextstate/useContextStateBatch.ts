@@ -1,7 +1,8 @@
 import { useEffect } from "react";
 import { ValueOrCallbackWithArgs, convertArrayToDictionary2, logTrace, useForceUpdate, useUniqueId } from "@react-simple/react-simple-util";
-import { getGlobalContextEntry, getOrCreateGlobalContextEntry, getOrCreateGlobalContextStateEntry, setGlobalContextState } from "./functions";
+import { setGlobalContextState } from "./functions";
 import { ContextStateChangeArgs } from "./types";
+import { getGlobalContextEntry, getOrCreateGlobalContextEntry, getOrCreateGlobalContextStateEntry } from "./internal/functions";
 
 // By calling useContextStateBatch() the parent component subscribes to multiple context state changes at once according to the specified getUpdates value.
 // useContextStateBatch() does not always return a state, the returned state can be undefined, if not yet set.
@@ -39,11 +40,11 @@ export function useContextStateBatch(props: UseContextStateBatchProps): UseConte
 
 	// local function called by other hooks via subscription on state changes to update this hook and its parent component
 	const handleStateUpdated = () => {
-		logTrace("react-simple-state: useContextStateBatch.handleStateUpdated", { props, uniqueId, stateEntries });
+		logTrace("[useContextStateBatch.handleStateUpdated]", { props, uniqueId, stateEntries });
 		forceUpdate();
 	};
 
-	logTrace("react-simple-state: useContextStateBatch", { props, uniqueId, stateEntries });
+	logTrace("[useContextStateBatch]", { props, uniqueId, stateEntries });
 
 	// subscribe/unsubscribe
 	useEffect(
@@ -68,7 +69,7 @@ export function useContextStateBatch(props: UseContextStateBatchProps): UseConte
 				});
 			}
 
-			logTrace("react-simple-state: useContextStateBatch.initialize", { props, uniqueId, stateEntries });
+			logTrace("[useContextStateBatch.initialize]", { props, uniqueId, stateEntries });
 
 			return () => {
 				// Finalize

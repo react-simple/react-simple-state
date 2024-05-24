@@ -26,11 +26,11 @@ export function useContextStateRoot(props: UseContextStateRootProps): UseContext
 
 	// local function called by other hooks via subscription on state changes to update this hook and its parent component
 	const handleStateUpdated = () => {
-		logTrace("react-simple-state: useContextStateRoot.handleStateUpdated", { props, uniqueId, GLOBAL_CONTEXT_STATE });
+		logTrace("[useContextStateRoot.handleStateUpdated]", { props, uniqueId, GLOBAL_CONTEXT_STATE });
 		forceUpdate();
 	};
 
-	logTrace("react-simple-state: useContextStateRoot", { props, uniqueId, GLOBAL_CONTEXT_STATE });
+	logTrace("[useContextStateRoot]", { props, uniqueId, GLOBAL_CONTEXT_STATE });
 
 	// subscribe/unsubscribe
 	useEffect(
@@ -41,7 +41,7 @@ export function useContextStateRoot(props: UseContextStateRootProps): UseContext
 					onStateUpdated: handleStateUpdated
 				};
 
-				logTrace("react-simple-state: useContextStateRoot.initialize", { props, uniqueId, GLOBAL_CONTEXT_STATE });
+				logTrace("[useContextStateRoot.initialize]", { props, uniqueId, GLOBAL_CONTEXT_STATE });
 
 			return () => {
 				// Finalize

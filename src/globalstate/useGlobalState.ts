@@ -1,7 +1,8 @@
 import { useEffect } from "react";
 import { StateReturn, ValueOrCallback, ValueOrCallbackWithArgs, logTrace, useForceUpdate, useUniqueId } from "@react-simple/react-simple-util";
-import { getOrCreateGlobalStateEntry, setGlobalState } from "./functions";
+import { setGlobalState } from "./functions";
 import { StateChangeArgs } from "types";
+import { getOrCreateGlobalStateEntry } from "./internal/functions";
 
 // By calling useGlobalState() the parent component subscribes to state changes according to the specified getUpdates value.
 // useGlobalState() always returns a state, either the existing one or the default value.
@@ -31,11 +32,11 @@ export function useGlobalState<State>(props: UseGlobalStateProps<State>): StateR
 
 	// local function called by other hooks via subscription on state changes to update this hook and its parent component
 	const handleStateUpdated = () => {
-		logTrace(`${scope}: handleStateUpdated`, { props, uniqueId, stateEntry });
+		logTrace(`[${scope}]: handleStateUpdated`, { props, uniqueId, stateEntry });
 		forceUpdate();
 	};
 
-	logTrace(scope, { props, uniqueId, stateEntry });
+	logTrace(`[${scope}]`, { props, uniqueId, stateEntry });
 
 	// subscribe/unsubscribe
 	useEffect(
@@ -46,7 +47,7 @@ export function useGlobalState<State>(props: UseGlobalStateProps<State>): StateR
 					onStateUpdated: handleStateUpdated
 				};
 
-				logTrace(`${scope}: initialize`, { props, uniqueId, stateEntry });
+				logTrace(`[${scope}]: initialize`, { props, uniqueId, stateEntry });
 
 			return () => {
 				// Finalize

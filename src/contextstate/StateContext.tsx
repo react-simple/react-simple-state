@@ -2,7 +2,7 @@ import { PropsWithChildren, createContext, useContext, useEffect, useState } fro
 import { StateContextData } from "./types";
 import { logWarning, newGuid } from "@react-simple/react-simple-util";
 import { REACT_SIMPLE_STATE } from "data";
-import { getOrCreateGlobalContextEntry } from "./functions";
+import { getOrCreateGlobalContextEntry } from "./internal/functions";
 
 // By default global state is used, but StateContext can be used to create local state bags in the DOM.
 // Specify contextId if local state bag is requested. Global state is under the "" key.
@@ -25,7 +25,7 @@ export const StateContext = ({ contextId, children }: StateContextProviderProps)
 			const registeredUniqueId = REGISTERED_STATE_CONTEXT_UNIQUE_IDS[contextId];
 
 			if (registeredUniqueId && registeredUniqueId !== uniqueId) {
-				logWarning(`StateContext with contextId='${contextId}' is already registed.`);
+				logWarning(`[StateContext]: StateContext with contextId='${contextId}' is already registed.`);
 			}
 
 			REGISTERED_STATE_CONTEXT_UNIQUE_IDS[contextId] = uniqueId;

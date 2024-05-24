@@ -16,7 +16,7 @@ export function mergeState<State>(
 }
 
 export const notifySubscribers = <State>(stateEntry: StateEntry<State>, args: StateChangeArgs<State>) => {
-	logTrace("react-simple-state: notifySubscribers", { stateEntry, args });
+	logTrace("[notifySubscribers]", { stateEntry, args });
 
 	// state key level subscriptions
 	for (const sub of Object.values(stateEntry.stateSubscriptions)) {
@@ -35,7 +35,7 @@ export const notifySubscribers = <State>(stateEntry: StateEntry<State>, args: St
 
 export const notifyContextSubscribers = <State>(stateEntry: ContextStateEntry<State>, args: ContextStateChangeArgs<State>) => {
 	const context = GLOBAL_CONTEXT_STATE.rootState[stateEntry.contextId];
-	logTrace("react-simple-state: notifyContextSubscribers", { stateEntry, args, context });
+	logTrace("[notifyContextSubscribers]", { stateEntry, args, context });
 
 	// state key level subscriptions
 	for (const sub of Object.values(stateEntry.stateSubscriptions)) {

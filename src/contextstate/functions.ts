@@ -1,57 +1,13 @@
 import {
-	Nullable, ValueOrCallback, ValueOrCallbackWithArgs, getResolvedArray, getResolvedCallbackValue, getResolvedCallbackValueWithArgs, logDebug, logTrace
+	ValueOrCallback, ValueOrCallbackWithArgs, getResolvedArray, getResolvedCallbackValue, getResolvedCallbackValueWithArgs, logDebug, logTrace
 } from "@react-simple/react-simple-util";
 import { mergeState, notifyContextSubscribers } from "internal/functions";
 import { GLOBAL_CONTEXT_STATE } from "internal/contextstate.data";
-import { ContextStateEntry } from "./types";
+import { getGlobalContextEntry, getGlobalContextStateEntry, getOrCreateGlobalContextStateEntry } from "./internal/functions";
 
 export const getGlobalContextStateRoot = () => {
 	return GLOBAL_CONTEXT_STATE;
 }
-
-export const getGlobalContextEntry = (contextId: string) => {
-	return GLOBAL_CONTEXT_STATE.rootState[contextId];
-};
-
-export const getOrCreateGlobalContextEntry = (contextId: string) => {
-	let context = getGlobalContextEntry(contextId);
-
-	if (!context) {
-		context = { contextId, contextState: {}, contextStateSubscriptions: {} };
-		GLOBAL_CONTEXT_STATE.rootState[contextId] = context;
-	}
-
-	return context;
-};
-
-// Gets the current context state as it is (nullable), but the caller component/hook won't get updated on state changes. Suitable for event handlers.
-// Use the useContextState() hook to get the parent component/hook updated on state changes.
-export const getGlobalContextStateEntry = <State>(contextId: string, stateKey: string) => {
-	const context = getGlobalContextEntry(contextId);
-	const stateEntry = context?.contextState?.[stateKey] as Nullable<ContextStateEntry<State>>;
-
-	return { context, stateEntry };
-};
-
-// Gets the current context state as it is (nullable), but the caller component/hook won't get updated on state changes. Suitable for event handlers.
-// Use the useContextState() hook to get the parent component/hook updated on state changes.
-export const getOrCreateGlobalContextStateEntry = <State>(contextId: string, stateKey: string, defaultValue: ValueOrCallback<State>) => {
-	const context = getOrCreateGlobalContextEntry(contextId);
-	let stateEntry = context?.contextState[stateKey] as Nullable<ContextStateEntry<State>>;
-
-	if (!stateEntry) {
-		stateEntry = {
-			contextId,
-			stateKey,
-			state: getResolvedCallbackValue(defaultValue),
-			stateSubscriptions: {}
-		};
-
-		context.contextState[stateKey] = stateEntry as ContextStateEntry<unknown>;
-	}
-
-	return stateEntry;
-};
 
 // Gets the current context state, but the caller component/hook won't get updated on state changes. Suitable for event handlers.
 // Use the useContextState() hook to get the parent component/hook updated on state changes.
@@ -85,7 +41,7 @@ export const setGlobalContextState = <State>(
 	// set new state
 	stateEntry.state = newState;
 
-	logDebug(`[react-simple-state] setGlobalContextState ${contextId} ${stateKey}`, { args, contextId, stateEntry, oldState, newState });
+	logDebug(`[setGlobalContextState] ${contextId} ${stateKey}`, { args, contextId, stateEntry, oldState, newState });
 	notifyContextSubscribers(stateEntry, { contextId, stateKey, oldState, newState }); // notify context subscribers too
 
 	return newState;
@@ -103,7 +59,7 @@ export const initGlobalContextState = <State>(contextId: string, stateKey: strin
 	// set new state
 	stateEntry.state = newState;
 
-	logDebug(`[react-simple-state] initGlobalContextState ${contextId} ${stateKey}`, { contextId, stateKey, state, stateEntry, oldState, newState });
+	logDebug(`[initGlobalContextState] ${contextId} ${stateKey}`, { contextId, stateKey, state, stateEntry, oldState, newState });
 	notifyContextSubscribers(stateEntry!, { contextId, stateKey, oldState, newState }); // notify context subscribers too
 	return newState;
 };
@@ -113,14 +69,14 @@ export const initGlobalContextState = <State>(contextId: string, stateKey: strin
 // Use initContextState() to reset the state, but keep the subscriptions.
 // (Also, unlike initContextState(), subscribers won't get notified on the state change; it's completely silent. It's for finalizers.)
 export const removeGlobalContextState = (contextIds: string | string[], stateKeys?: string | string[]) => {
-	const scope = "react-simple-state: removeGlobalContextState";
-	logDebug(scope, { contextIds, stateKeys });
+	const scope = "removeGlobalContextState";
+	logDebug(`[${scope}]`, { contextIds, stateKeys });
 
 	for (const contextId of getResolvedArray(contextIds)) {
 		if (stateKeys) {
 			for (const stateKey of getResolvedArray(stateKeys)) {
 				if (getGlobalContextStateEntry(contextId, stateKey)) {
-					logTrace(`${scope} ${contextId} ${stateKey}`, { contextId, stateKey });
+					logTrace(`[${scope}] ${contextId} ${stateKey}`, { contextId, stateKey });
 
 					// notifySubscribers() is not called intentionally here
 
@@ -130,7 +86,7 @@ export const removeGlobalContextState = (contextIds: string | string[], stateKey
 		}
 		else {
 			if (getGlobalContextEntry(contextId)) {
-				logTrace(`${scope} ${contextId}`, { contextId });
+				logTrace(`[${scope}] ${contextId}`, { contextId });
 
 				// notifySubscribers() is not called intentionally here
 
