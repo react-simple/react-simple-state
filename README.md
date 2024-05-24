@@ -37,6 +37,13 @@ Members in the REACT_SIMPLE_STATE object can be set to update the behavior of th
 
 - **ROOT_CONTEXT_ID**: The default *contextId* for the **root-context** in STATE_CONTEXT_ROOT which is used when no &lt;StackContext&gt; component is found in the DOM. "ROOT_CONTEXT" by default and cannot be changed.
 
+### REACT_SIMPLE_STATE.DI
+
+Dependency injection references which will be called by the appropriate methods.
+
+For example the **getGlobalState()** function will call the **REACT_SIMPLE_STATE.DI.globalState.getGlobalState()** function, so it can be easily replaced with a custom implementation. 
+The custom callback will be called with all parameters and the default implementation - **getGlobalState_default()** -, which makes wrapping the default behavior easier.
+
 # Content
 
 ## Types
