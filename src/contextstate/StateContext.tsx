@@ -1,3 +1,4 @@
+import * as React from "react";
 import { PropsWithChildren, createContext, useContext, useEffect, useState } from "react";
 import { StateContextData } from "./types";
 import { logWarning, newGuid } from "@react-simple/react-simple-util";
@@ -35,6 +36,7 @@ export const StateContext = ({ contextId, children }: StateContextProviderProps)
 				delete REGISTERED_STATE_CONTEXT_UNIQUE_IDS[contextId];
 			};
 		},
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 		[contextId]
 	);
 

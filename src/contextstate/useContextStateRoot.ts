@@ -50,6 +50,7 @@ export function useContextStateRoot(props: UseContextStateRootProps): UseContext
 				delete globalContextState!.rootStateSubscriptions[uniqueId];
 			}
 		},
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 		[]);
 
 	return [

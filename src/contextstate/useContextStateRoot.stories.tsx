@@ -1,3 +1,4 @@
+import * as React from "react";
 import type { Meta } from '@storybook/react';
 import { LOG_LEVELS, LogLevel, REACT_SIMPLE_UTIL, StorybookComponent, logInfo } from '@react-simple/react-simple-util';
 import { Stack, Cluster, ObjectRenderer } from '@react-simple/react-simple-ui';
@@ -10,7 +11,7 @@ import { getGlobalContextStateRoot } from './internal/functions';
 
 const TITLE = "Context state / Root context only";
 const DESC = <>
-	If there is no &lt;StateContext&gt; used then the root context is used, which is the same like using global context (but it's a different state).
+	If there is no &lt;StateContext&gt; used then the root context is used, which is the same like using global context (but it&apos;s a different state).
 </>;
 
 const STATE_KEY = "form_values";

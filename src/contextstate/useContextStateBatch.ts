@@ -94,6 +94,7 @@ export function useContextStateBatch(props: UseContextStateBatchProps): UseConte
 				}
 			}
 		},
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 		[]);
 
 	const states = convertArrayToDictionary2(stateEntries, t => [t.contextId, t.stateKey, t.state]);

@@ -59,6 +59,7 @@ export function useGlobalStateBatch(props: UseGlobalStateBatchProps): UseGlobalS
 				});
 			}
 		},
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 		[]);
 
 	const states = convertArrayToDictionary(stateEntries, t => [t.stateKey, t.state]);

@@ -54,6 +54,7 @@ export function useGlobalState<State>(props: UseGlobalStateProps<State>): StateR
 				delete stateEntry!.stateSubscriptions[uniqueId];
 			}
 		},
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 		[]);
 
 	const setState = (

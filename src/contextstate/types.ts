@@ -24,4 +24,4 @@ export interface ContextState {
 export interface ContextGlobalState {
 	readonly rootState: { [contextId: string]: ContextState };
 	readonly rootStateSubscriptions: { [uniqueId: string]: Nullable<StateChangeSubscription<ContextStateChangeArgs<unknown>>> };
-};
+}

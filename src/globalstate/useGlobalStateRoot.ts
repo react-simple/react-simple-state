@@ -50,6 +50,7 @@ export function useGlobalStateRoot(props: UseGlobalStateRootProps): UseGlobalSta
 				delete globalState.rootStateSubscriptions[uniqueId];
 			}
 		},
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 		[]);
 
 	return [

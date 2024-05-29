@@ -1,3 +1,4 @@
+import * as React from "react";
 import { useEffect } from 'react';
 import type { Meta } from '@storybook/react';
 import { LOG_LEVELS, LogLevel, REACT_SIMPLE_UTIL, StorybookComponent, logInfo } from '@react-simple/react-simple-util';

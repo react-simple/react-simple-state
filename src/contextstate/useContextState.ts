@@ -63,6 +63,7 @@ export function useContextState<State>(props: UseContextStateProps<State>): Stat
 				removeGlobalContextState(contextId, stateKey);
 			}
 		},
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 		[]);
 
 	const setState = (
