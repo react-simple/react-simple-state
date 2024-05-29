@@ -1,13 +1,13 @@
 # React Simple! State Library
-React global and context level state management hooks. The **useGlobalState()** and **useContextState()** hooks work like the default **useState()** hook except that their scope is non-local.
+This library provides React global and context level state management hooks. The **useGlobalState()** and **useContextState()** hooks work like the default **useState()** hook except that their scope is non-local.
 
 Features:
 - The primary **useGlobalState()** hook works like the React **useState()** hook except that the **state is stored globally** and can be shared between components.
 	- The ***stateKey*** argument is used to separate state entries and to update components only subscribed to a particular state key when state changes.
 	- Components can further **filter state changes** they react to by specifying the **getUpdates** argument:
-		- *true* for all updates with the same *stateKey*
-		- *false* for no updates at all and
-		- a callback function with (*newState, oldState, setStateArgs*) arguments to dynamiclly decide if the component should be updated or not
+		- *true* for to get all updates with the same *stateKey*
+		- *false* for to get no updates at all and
+		- a callback function with (*newState, oldState, setStateArgs*) arguments to dynamiclly decide if the component should be updated or not when state changes.
 - The **useContextState()** hook can be used to access context-level state in the DOM.
 	- By default **root-context** is used, which is global, but with  the **&lt;StateContext&gt;** component child contexts can be created in the DOM.
 	- This is achieved by storing **contextId**-s in **React.context**-s and using those context ids to access separate state entries based on the DOM location of the caller component.
@@ -67,14 +67,12 @@ which means that the subscribed component will get updated on any global-state c
 
 ### Functions
 
-State can be read and written using functions instead of hooks. However, unlike hooks, functions won't provide subscription therefore calling components won't 
-get updated when state changes so the DOM cannot react. However, using these functions in event handlers (like *onClick*) is perfectly safe since when 
-the event is fired the actual state will be read.
+State can be read and written using functions instead of hooks. However, unlike hooks, functions won't provide subscription therefore calling components won't get updated when state changes so the DOM cannot react. However, using these functions in event handlers (is perfectly safe since when the event is fired the actual state will be read.
 
 - **getGlobalState&lt;State&gt;(*stateKey, defaultValue*)**:
 	- Returns state value from global-state by ***stateKey***.
 	- It always returns the current state or the default state.
-	- This function can be used in event handlers or in components which do not need to be updated on state changes therefore using the **useGlobalState()** hook would  just generate unnecessary updates.
+	- This function can be used in event handlers or in components which do not need to be updated on state changes therefore using the **useGlobalState()** hook would just generate unnecessary updates.
 
 - **setGlobalState&lt;State&gt;(*stateKey, state, defaultValue, customMerge*)**:
 	- Sets the state entry in global-state by ***stateKey*** and will update all subscribed components.
@@ -122,9 +120,9 @@ Internal functions are not exported by the package.
 		- *true* to react to all updates
 		- *false* to react to no updates or
 		- a *callback function* to return *true* or *false* based on the passed (*oldState, newState, setStateArgs*) arguments. 
-		- Example: it can react to the change of a particular member only by returning *oldState*[*memberName*] !== *newState*[*memberName*].
-	- This hook returns a **setState(*state, customMerge*)** function to update the requested state.
-		- **setState()** is the simplified version of **setGlobalState()**, since it does not require those arguments which were already specified for the hook: *stateKey, defaultValue* etc.
+		- Example: react to the change of a particular member only by returning *oldState*[*memberName*] !== *newState*[*memberName*].
+	- This hook returns a **setState()** function to update the requested state.
+		- **setState(*state, customMerge*)** is the simplified version of **setGlobalState({ *stateKey, state, defaultValue, customMerge* })**, since it does not require those arguments which were already specified for the hook.
 		- The merging of the new state with the current state is a *shallow* merge, but a custom merge method can be specified either for the **setState()** call or for the hook.
 
 - **useGlobalStateBatch({ *stateKeys, getUpdates, subscriberId?* })**:
@@ -141,8 +139,7 @@ Internal functions are not exported by the package.
 ## Context State
 
 Context-state can be used to access context-level state. By default the **root-context** is used, which is global, but using the
-**&lt;StateContext&gt;** component it is possible to define child contexts in the DOM. This is achieved by storing ***contextId*** in **React.context** and using
-that ***contextId*** and ***stateKey*** to access separate state entries based on the DOM location of the caller component.
+**&lt;StateContext&gt;** component it is possible to define child contexts in the DOM. This is achieved by storing ***contextId*** in **React.context** and using that ***contextId*** and ***stateKey*** to access separate state entries based on the DOM location of the caller component.
 
 ### Types
 
@@ -162,9 +159,7 @@ which means that the subscribed component will get updated on any context-state 
 
 ### Functions
 
-State can be read and written using functions instead of hooks. However, unlike hooks, functions won't provide subscription therefore calling components won't 
-get updated when state changes so the DOM cannot react. However, using these functions in event handlers (like *onClick*) is perfectly safe since when 
-the event is fired the actual state will be read.
+State can be read and written using functions instead of hooks. However, unlike hooks, functions won't provide subscription therefore calling components won't get updated when state changes so the DOM cannot react. However, using these functions in event handlers is perfectly safe since when the event is fired the actual state will be read.
 
 - **getGlobalContextState&lt;State&gt;(*contextId, stateKey, defaultValue*)**:
 	- Returns state value from context-state by ***contextId*** and ***stateKey***.
@@ -229,8 +224,8 @@ after initialization, if needed.
 		- *false* to react to no updates or
 		- a *callback function* to return *true* or *false* based on the passed (*oldState, newState, setStateArgs*) arguments.
 		- Example: it can react to the change of a particular member only by returning *oldState*[*memberName*] !== *newState*[*memberName*].
-	- The hook returns a **setState(*value, customMerge*)** function to update the requested state.
-		- The **setState()** function is the simplified version of **setGlobalContextState()**, since it does not require those arguments which are already specified for the hook: *contextId*, *stateKey*, *defaultValue* etc.
+	- The hook returns a **setState()** function to update the requested state.
+		- The **setState(*value, customMerge*)** function is the simplified version of **setGlobalContextState({ *contextId, stateKey, state, defaultValue, customMerge* })**, since it does not require those arguments which are already specified for the hook.
 		- The merging of the new state with the current state is a *shallow* merge, but a custom merge method can be specified either for the **setState()** call or for the hook.
 
 - **useContextStateBatch({ *contextIds, stateKeys?, getUpdates, subscriberId?* })**:
