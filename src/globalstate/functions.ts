@@ -65,10 +65,10 @@ export const setGlobalState = <State>(
 	return REACT_SIMPLE_STATE.DI.globalState.setGlobalState(args, GLOBAL_STATE, setGlobalState_default);
 };
 
-// Sets global state and notifies all subscribed components. Requires complet state since no merging will occur.
+// Sets global state and notifies all subscribed components. Requires complete state since no merging will occur.
 const initGlobalState_default = <State>(stateKey: string, state: ValueOrCallback<State>) => {
 	const existingStateEntry = getGlobalStateEntry<State>(stateKey);
-	const oldState: Partial<State> = existingStateEntry?.state || {}; // we don't ask for defaultValue just for this
+	const oldState: State | undefined = existingStateEntry?.state; // we don't ask for defaultValue just for this
 
 	// calculate new state
 	const newState = getResolvedCallbackValue(state); // no merging, it's a complete state
@@ -84,7 +84,7 @@ const initGlobalState_default = <State>(stateKey: string, state: ValueOrCallback
 
 REACT_SIMPLE_STATE.DI.globalState.initGlobalState = initGlobalState_default;
 
-// Sets global state and notifies all subscribed components. Requires complet state since no merging will occur.
+// Sets global state and notifies all subscribed components. Requires complete state since no merging will occur.
 export const initGlobalState = <State>(stateKey: string, state: ValueOrCallback<State>) => {
 	return REACT_SIMPLE_STATE.DI.globalState.initGlobalState(stateKey, state, GLOBAL_STATE, initGlobalState_default);
 };

@@ -4,7 +4,7 @@ import { setGlobalContextState } from "./functions";
 import { ContextStateChangeArgs } from "./types";
 import { getGlobalContextEntry, getOrCreateGlobalContextEntry, getOrCreateGlobalContextStateEntry } from "./internal/functions";
 
-// By calling useContextStateBatch() the parent component subscribes to multiple context state changes at once according to the specified getUpdates value.
+// By calling useContextStateBatch() the parent component subscribes to multiple context state changes at once according to the specified updateFilter value.
 // useContextStateBatch() does not always return a state, the returned state can be undefined, if not yet set.
 // Context ids must be exactly specified in contextIds.
 
@@ -13,7 +13,7 @@ export interface UseContextStateBatchProps {
 	stateKeys?: string[];
 
 	// true: always, false: never, function: selective
-	getUpdates: ValueOrCallbackWithArgs<ContextStateChangeArgs<unknown>, boolean>;
+	updateFilter: ValueOrCallbackWithArgs<ContextStateChangeArgs<unknown>, boolean>;
 
 	// optional
 	subscriberId?: string; // custom metadata for tracing info only
@@ -24,9 +24,9 @@ export type UseContextStateBatchReturn = [
 	typeof setGlobalContextState
 ];
 
-// By calling useContextStateBatch() the parent component can subscribe to state changes of multiple contexts according to the specified getUpdates value.
+// By calling useContextStateBatch() the parent component can subscribe to state changes of multiple contexts according to the specified updateFilter value.
 export function useContextStateBatch(props: UseContextStateBatchProps): UseContextStateBatchReturn {
-	const { contextIds, stateKeys, getUpdates, subscriberId } = props;
+	const { contextIds, stateKeys, updateFilter, subscriberId } = props;
 
 	const uniqueId = useUniqueId({ prefix: subscriberId }); // generate permanent uniqueId for this hook instance
 	const forceUpdate = useForceUpdate();
@@ -54,7 +54,7 @@ export function useContextStateBatch(props: UseContextStateBatchProps): UseConte
 				// subscribe to these keys only
 				stateEntries.forEach(stateEntry => {
 					stateEntry.stateSubscriptions[uniqueId] = {
-						getUpdates,
+						updateFilter,
 						onStateUpdated: handleStateUpdated
 					};
 				});
@@ -66,7 +66,7 @@ export function useContextStateBatch(props: UseContextStateBatchProps): UseConte
 
 					if (entry) {
 						entry.contextStateSubscriptions[uniqueId] = {
-							getUpdates,
+							updateFilter,
 							onStateUpdated: handleStateUpdated
 						};
 					}

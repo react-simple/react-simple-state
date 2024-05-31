@@ -30,7 +30,7 @@ const ChildComponent = (props: {
 	const [formValues, setFormValues] = useContextState<FormState>({
 		stateKey: STATE_KEY,
 		defaultValue: DEFAULT_FORM_STATE,
-		getUpdates: true,
+		updateFilter: true,
 		subscriberId: scope
 	});
 
@@ -63,14 +63,14 @@ const Summary = () => {
 	const [formValues] = useContextState<FormState>({
 		stateKey: STATE_KEY,
 		defaultValue: DEFAULT_FORM_STATE,
-		getUpdates: true,
+		updateFilter: true,
 		subscriberId: scope
 	});
 
 	// get this component updated if anything changes in global state
 	const [contextStateRoot] = useContextStateRoot({
 		subscriberId: "Component",
-		getUpdates: true
+		updateFilter: true
 	});
 
 	logInfo(`[${scope}]: render`, { formValues, contextStateRoot });
@@ -92,7 +92,7 @@ interface ComponentProps {
 
 const Component = (props: ComponentProps) => {
 	// this is not a state, in real app we only set it once at the beginning
-	REACT_SIMPLE_UTIL.LOGGING.LOG_LEVEL = props.logLevel;
+	REACT_SIMPLE_UTIL.LOGGING.logLevel = props.logLevel;
 
 	logInfo("[Component]: render", props);
 

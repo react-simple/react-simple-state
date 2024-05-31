@@ -4,13 +4,13 @@ import { setGlobalState } from "./functions";
 import { StateChangeArgs } from "types";
 import { getOrCreateGlobalStateEntry } from "./internal/functions";
 
-// By calling useGlobalStateBatch() the parent component subscribes to state changes of multiple state keys according to the specified getUpdates value.
+// By calling useGlobalStateBatch() the parent component subscribes to state changes of multiple state keys according to the specified updateFilter value.
 // useGlobalStateBatch() does not always return a state, the returned state can be undefined, if not yet set.
 
 export interface UseGlobalStateBatchProps {
 	stateKeys: string[];
 	// true: always, false: never, function: selective
-	getUpdates: ValueOrCallbackWithArgs<StateChangeArgs<unknown>, boolean>; 
+	updateFilter: ValueOrCallbackWithArgs<StateChangeArgs<unknown>, boolean>; 
 
 	// optional
 	subscriberId?: string; // custom metadata for tracing info only
@@ -22,7 +22,7 @@ export type UseGlobalStateWatchBatchReturn = [
 ];
 
 export function useGlobalStateBatch(props: UseGlobalStateBatchProps): UseGlobalStateWatchBatchReturn {
-	const { stateKeys, getUpdates, subscriberId } = props;
+	const { stateKeys, updateFilter, subscriberId } = props;
 	const scope = `[react-simple-state] useGlobalStateBatch [${stateKeys.join(", ")}]`;
 
 	const uniqueId = useUniqueId({ prefix: subscriberId }); // generate permanent uniqueId for this hook instance
@@ -45,7 +45,7 @@ export function useGlobalStateBatch(props: UseGlobalStateBatchProps): UseGlobalS
 			// Initialize
 			stateEntries.forEach(stateEntry => {
 				stateEntry.stateSubscriptions[uniqueId] = {
-					getUpdates,
+					updateFilter,
 					onStateUpdated: handleStateUpdated
 				};
 			});

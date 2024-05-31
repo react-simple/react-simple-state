@@ -25,9 +25,9 @@ const ChildComponent = (props: {
 	const [formValues, setFormValues] = useGlobalState<FormState>({
 		stateKey: STATE_KEY,
 		defaultValue: DEFAULT_FORM_STATE,
-		getUpdates: ({ oldState, newState }) => {
-			const result = fieldNames.some(t => oldState[t] !== newState[t]);
-			logInfo(`[${scope}]: getUpdates`, { fieldNames, oldState, newState, result });
+		updateFilter: ({ oldState, newState }) => {
+			const result = fieldNames.some(t => oldState?.[t] !== newState[t]);
+			logInfo(`[${scope}]: updateFilter`, { fieldNames, oldState, newState, result });
 			return result;
 		},
 		subscriberId: scope
@@ -62,13 +62,13 @@ const Summary = () => {
 	const [formValues] = useGlobalState<FormState>({
 		stateKey: STATE_KEY,
 		defaultValue: DEFAULT_FORM_STATE,
-		getUpdates: true,
+		updateFilter: true,
 		subscriberId: scope
 	});
 
 	const [globalState] = useGlobalStateRoot({
 		subscriberId: "Component",
-		getUpdates: true
+		updateFilter: true
 	});
 
 	logInfo(`[${scope}]: render`, { formValues, globalState });
@@ -90,7 +90,7 @@ interface ComponentProps {
 
 const Component = (props: ComponentProps) => {
 	// this is not a state, in real app we only set it once at the beginning
-	REACT_SIMPLE_UTIL.LOGGING.LOG_LEVEL = props.logLevel;
+	REACT_SIMPLE_UTIL.LOGGING.logLevel = props.logLevel;
 
 	logInfo("[Component]: render", props);
 

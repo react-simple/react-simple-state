@@ -3,7 +3,7 @@ import { ReactSimpleStateDependencyInjection } from "types.di";
 
 export interface StateChangeArgs<State> {
 	stateKey: string;
-	oldState: Partial<State>;
+	oldState: State | undefined; // during initialization by default value, we have no previous state
 	newState: State;
 }
 
@@ -11,7 +11,7 @@ export interface StateChangeSubscription<StateChangeArgs> {
 	readonly onStateUpdated: (args: StateChangeArgs) => void;
 
 	// true to get all update, false to get no updates, function to get updates selectively
-	readonly getUpdates: ValueOrCallbackWithArgs<StateChangeArgs, boolean>;
+	readonly updateFilter: ValueOrCallbackWithArgs<StateChangeArgs, boolean>;
 }
 
 export interface StateEntry<State, TStateChangeArgs = StateChangeArgs<State>> {
@@ -26,3 +26,10 @@ export interface ReactSimpleState {
 	readonly ROOT_CONTEXT_ID: string;
 	readonly DI: ReactSimpleStateDependencyInjection;
 }
+
+export type StateSetter<State> = (
+	state: ValueOrCallbackWithArgs<State, Partial<State>>,
+	customMerge?: (oldState: State, newState: Partial<State>) => State
+) => State;
+
+export type StateReturn<State> = [State, StateSetter<State>];

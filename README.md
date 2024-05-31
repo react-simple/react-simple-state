@@ -4,7 +4,7 @@ This library provides React global and context level state management hooks. The
 Features:
 - The primary **useGlobalState()** hook works like the React **useState()** hook except that the **state is stored globally** and can be shared between components.
 	- The ***stateKey*** argument is used to separate state entries and to update components only subscribed to a particular state key when state changes.
-	- Components can further **filter state changes** they react to by specifying the **getUpdates** argument:
+	- Components can further **filter state changes** they react to by specifying the **updateFilter** argument:
 		- *true* for to get all updates with the same *stateKey*
 		- *false* for to get no updates at all and
 		- a callback function with (*newState, oldState, setStateArgs*) arguments to dynamiclly decide if the component should be updated or not when state changes.
@@ -111,12 +111,12 @@ Internal functions are not exported by the package.
 
 ### Hooks
 
-- **useGlobalState&lt;State&gt;({ *stateKey, getUpdates, defaultValue, subscriberId?, merge?* })**: 
+- **useGlobalState&lt;State&gt;({ *stateKey, updateFilter, defaultValue, subscriberId?, merge?* })**: 
 	- Returns [*state*, *setState()*] result from global-state by ***stateKey***.
 	- Always returns the current state or the default state.
 	- Subscribes to state changes so when global-state with the same ***stateKey*** changes it will get updated.
-	- The parent component will get updated as long as the **getUpdates** argument is *true* or does return *true*.
-	- ***getUpdates*** is either:
+	- The parent component will get updated as long as the **updateFilter** argument is *true* or does return *true*.
+	- ***updateFilter*** is either:
 		- *true* to react to all updates
 		- *false* to react to no updates or
 		- a *callback function* to return *true* or *false* based on the passed (*oldState, newState, setStateArgs*) arguments. 
@@ -125,13 +125,13 @@ Internal functions are not exported by the package.
 		- **setState(*state, customMerge*)** is the simplified version of **setGlobalState({ *stateKey, state, defaultValue, customMerge* })**, since it does not require those arguments which were already specified for the hook.
 		- The merging of the new state with the current state is a *shallow* merge, but a custom merge method can be specified either for the **setState()** call or for the hook.
 
-- **useGlobalStateBatch({ *stateKeys, getUpdates, subscriberId?* })**:
+- **useGlobalStateBatch({ *stateKeys, updateFilter, subscriberId?* })**:
 	- Similar to the **useGlobalState()** hook, but it accepts multiple state keys and returns states in an associative array with **stateKey** keys.
 	- Subscribes to all state changes for those state keys.
 	- State is always returned as-it-is, there is no initialization with a default value.
 	- It returns the **setGlobalState()** function to set any state.
 
-- **useGlobalStateRoot({ *getUpdates, subscriberId?* })**:
+- **useGlobalStateRoot({ *updateFilter, subscriberId?* })**:
 	- This hook returns the root global-state with all state keys included and subscribes to any global-state changes.
 	- State is always returned as-it-is, there is no initialization with a default value.
 	- It returns the **setGlobalState()** function to set any state.
@@ -214,12 +214,12 @@ after initialization, if needed.
 
 ### Hooks
 
-- **useContextState&lt;State&gt;({ *stateKey, getUpdates, defaultValue, contextId?, merge?* })**:
+- **useContextState&lt;State&gt;({ *stateKey, updateFilter, defaultValue, contextId?, merge?* })**:
 	- Returns [*state*, *setState()*] value from context-state by ***contextId*** and ***stateKey***. 
 	- ***contextId*** is optional and if is not specified then it will be automatically picked up from the closest **&lt;SectionContext&gt;** component in DOM hierarchy. (The parent context in which the current component is placed.) If there is no such context then root-context is used.
 	- Always returns the current state or the default state.
-	- Subscribes to state changes so when context-state with the same ***contextId*** and ***stateKey*** gets updated the parent component will get updated too as long as ***getUpdates*** is *true* or returns *true*.
-	- ***getUpdates*** is either:
+	- Subscribes to state changes so when context-state with the same ***contextId*** and ***stateKey*** gets updated the parent component will get updated too as long as ***updateFilter*** is *true* or returns *true*.
+	- ***updateFilter*** is either:
 		- *true* to react to all updates
 		- *false* to react to no updates or
 		- a *callback function* to return *true* or *false* based on the passed (*oldState, newState, setStateArgs*) arguments.
@@ -228,13 +228,13 @@ after initialization, if needed.
 		- The **setState(*value, customMerge*)** function is the simplified version of **setGlobalContextState({ *contextId, stateKey, state, defaultValue, customMerge* })**, since it does not require those arguments which are already specified for the hook.
 		- The merging of the new state with the current state is a *shallow* merge, but a custom merge method can be specified either for the **setState()** call or for the hook.
 
-- **useContextStateBatch({ *contextIds, stateKeys?, getUpdates, subscriberId?* })**:
+- **useContextStateBatch({ *contextIds, stateKeys?, updateFilter, subscriberId?* })**:
 	- Similar to the **useContextState()** hook, but it accepts multiple context ids and state keys and returns states in an associative array with ***contextId*** and ***stateKey*** keys. 
 	- Subscribes to all state changes for those state keys. 
 	- State is always returned as-it-is, there is no initialization with a default value.
 	- It returns the **setGlobalContextState()** function to set any state.
 
-- **useContextStateRoot({ *getUpdates, subscriberId?* })**:
+- **useContextStateRoot({ *updateFilter, subscriberId?* })**:
 	- This hook returns the root context-state with all context ids and state keys withing contexts included and subscribes to any global-state changes.
 	- State is always returned as-it-is, there is no initialization with a default value.
 	- It returns the **setGlobalContextState()** function to set any state.

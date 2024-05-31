@@ -5,11 +5,11 @@ import { GlobalState } from "./types";
 import { setGlobalState } from "./functions";
 import { getGlobalStateRoot } from "./internal/functions";
 
-// By calling useGlobalStateRoot() the parent component subscribes to any global state changes (root level) according to the specified getUpdates value.
+// By calling useGlobalStateRoot() the parent component subscribes to any global state changes (root level) according to the specified updateFilter value.
 
 export interface UseGlobalStateRootProps {
 	// true: always, false: never, function: selective
-	getUpdates: ValueOrCallbackWithArgs<StateChangeArgs<unknown>, boolean>; 
+	updateFilter: ValueOrCallbackWithArgs<StateChangeArgs<unknown>, boolean>; 
 
 	// optional
 	subscriberId?: string; // custom metadata for tracing info only
@@ -18,7 +18,7 @@ export interface UseGlobalStateRootProps {
 export type UseGlobalStateReturn = [GlobalState, typeof setGlobalState];
 
 export function useGlobalStateRoot(props: UseGlobalStateRootProps): UseGlobalStateReturn {
-	const { getUpdates, subscriberId } = props;
+	const { updateFilter, subscriberId } = props;
 	const scope = "[react-simple-state] useGlobalStateRoot";
 
 	const uniqueId = useUniqueId({ prefix: subscriberId }); // generate permanent uniqueId for this hook instance
@@ -39,7 +39,7 @@ export function useGlobalStateRoot(props: UseGlobalStateRootProps): UseGlobalSta
 		() => {
 			// Initialize
 			globalState.rootStateSubscriptions[uniqueId] = {
-				getUpdates,
+				updateFilter,
 				onStateUpdated: handleStateUpdated
 			};
 

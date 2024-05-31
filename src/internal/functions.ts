@@ -20,14 +20,14 @@ export const notifySubscribers = <State>(stateEntry: StateEntry<State>, args: St
 
 	// state key level subscriptions
 	for (const sub of Object.values(stateEntry.stateSubscriptions)) {
-		if (sub && sub.getUpdates !== false && (sub.getUpdates === true || sub.getUpdates(args))) {
+		if (sub && sub.updateFilter !== false && (sub.updateFilter === true || sub.updateFilter(args))) {
 			sub.onStateUpdated(args);
 		}
 	}
 
 	// GLOBAL_STATE subscriptions
 	for (const sub of Object.values(getGlobalStateRoot().rootStateSubscriptions)) {
-		if (sub && sub.getUpdates !== false && (sub.getUpdates === true || sub.getUpdates(args))) {
+		if (sub && sub.updateFilter !== false && (sub.updateFilter === true || sub.updateFilter(args))) {
 			sub.onStateUpdated(args);
 		}
 	}
@@ -39,7 +39,7 @@ export const notifyContextSubscribers = <State>(stateEntry: ContextStateEntry<St
 
 	// state key level subscriptions
 	for (const sub of Object.values(stateEntry.stateSubscriptions)) {
-		if (sub && sub.getUpdates !== false && (sub.getUpdates === true || sub.getUpdates(args))) {
+		if (sub && sub.updateFilter !== false && (sub.updateFilter === true || sub.updateFilter(args))) {
 			sub.onStateUpdated(args);
 		}
 	}
@@ -47,7 +47,7 @@ export const notifyContextSubscribers = <State>(stateEntry: ContextStateEntry<St
 	// context level subscriptions
 	if (context) {
 		for (const sub of Object.values(context.contextStateSubscriptions)) {
-			if (sub && sub.getUpdates !== false && (sub.getUpdates === true || sub.getUpdates(args))) {
+			if (sub && sub.updateFilter !== false && (sub.updateFilter === true || sub.updateFilter(args))) {
 				sub.onStateUpdated(args);
 			}
 		}
@@ -55,7 +55,7 @@ export const notifyContextSubscribers = <State>(stateEntry: ContextStateEntry<St
 
 	// GLOBAL_CONTEXT_STATE subscriptions
 	for (const sub of Object.values(getGlobalContextStateRoot().rootStateSubscriptions)) {
-		if (sub && sub.getUpdates !== false && (sub.getUpdates === true || sub.getUpdates(args))) {
+		if (sub && sub.updateFilter !== false && (sub.updateFilter === true || sub.updateFilter(args))) {
 			sub.onStateUpdated(args);
 		}
 	}

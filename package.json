@@ -1,6 +1,6 @@
 {
   "name": "@react-simple/react-simple-state",
-  "version": "0.6.0",
+  "version": "0.6.2",
   "description": "React Simple! State Library",
   "author": "Mihály Tringel",
   "license": "MIT",
@@ -28,7 +28,7 @@
   },
   "peerDependencies": {
     "@react-simple/react-simple-ui": "^0.6.0",
-    "@react-simple/react-simple-util": "^0.6.0",
+    "@react-simple/react-simple-util": "^0.6.2",
     "react": "^18.2.0",
     "tslib": "^2.6.2"
   },
@@ -39,7 +39,7 @@
     "@babel/preset-typescript": "^7.24.1",
     "@chromatic-com/storybook": "^1.3.3",
     "@react-simple/react-simple-ui": "^0.6.0",
-    "@react-simple/react-simple-util": "^0.6.0",
+    "@react-simple/react-simple-util": "^0.6.2",
     "@rollup/plugin-babel": "^6.0.4",
     "@storybook/addon-essentials": "^8.0.8",
     "@storybook/addon-interactions": "^8.0.8",

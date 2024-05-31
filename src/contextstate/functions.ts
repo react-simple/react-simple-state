@@ -70,13 +70,13 @@ export const setGlobalContextState = <State>(
 	return REACT_SIMPLE_STATE.DI.contextState.setGlobalContextState(args, GLOBAL_CONTEXT_STATE, setGlobalContextState_default);
 }
 
-// Sets global state and notifies all subscribed components. Requires complet state since no merging will occur.
+// Sets global state and notifies all subscribed components. Requires complete state since no merging will occur.
 const initGlobalContextState_default = <State>(contextId: string, stateKey: string, state: ValueOrCallback<State>) => {
-	const existing = getGlobalContextStateEntry(contextId, stateKey);
+	const existing = getGlobalContextStateEntry<State>(contextId, stateKey);
 	const stateEntry = getOrCreateGlobalContextStateEntry(contextId, stateKey, state);
 
 	// calculate new state
-	const oldState: Partial<State> = existing?.stateEntry?.state || {}; // we don't ask for defaultValue just for this
+	const oldState: State | undefined = existing?.stateEntry?.state || undefined; // we don't ask for defaultValue just for this
 	const newState = getResolvedCallbackValue(state); // no merging, it's a complete state
 
 	// set new state
@@ -89,7 +89,7 @@ const initGlobalContextState_default = <State>(contextId: string, stateKey: stri
 
 REACT_SIMPLE_STATE.DI.contextState.initGlobalContextState = initGlobalContextState_default;
 
-// Sets global state and notifies all subscribed components. Requires complet state since no merging will occur.
+// Sets global state and notifies all subscribed components. Requires complete state since no merging will occur.
 export const initGlobalContextState = <State>(contextId: string, stateKey: string, state: ValueOrCallback<State>) => {
 	return REACT_SIMPLE_STATE.DI.contextState.initGlobalContextState(
 		contextId, stateKey, state, GLOBAL_CONTEXT_STATE, initGlobalContextState_default

@@ -8,7 +8,7 @@ import { getGlobalContextStateRoot } from "./internal/functions";
 // By default the closest <StateContext> is used in the DOM hierarchy, but it can be overriden by specifying an exact contextId.
 
 export interface UseContextStateRootProps {
-	getUpdates: ValueOrCallbackWithArgs<ContextStateChangeArgs<unknown>, boolean>;
+	updateFilter: ValueOrCallbackWithArgs<ContextStateChangeArgs<unknown>, boolean>;
 
 	// optional
 	subscriberId?: string; // custom metadata for tracing info only
@@ -16,10 +16,10 @@ export interface UseContextStateRootProps {
 
 export type UseContextStateRootReturn = [ContextGlobalState, typeof setGlobalContextState];
 
-// By calling useContextStateRoot() the parent component subscribes to state changes according to the specified getUpdates value.
+// By calling useContextStateRoot() the parent component subscribes to state changes according to the specified updateFilter value.
 // By default state from the closes StateContext is used from the DOM hierarchy, but it can be overridden by specifying contextId.
 export function useContextStateRoot(props: UseContextStateRootProps): UseContextStateRootReturn {
-	const { getUpdates, subscriberId } = props;
+	const { updateFilter, subscriberId } = props;
 
 	const uniqueId = useUniqueId({ prefix: subscriberId }); // generate permanent uniqueId for this hook instance
 	const forceUpdate = useForceUpdate();
@@ -39,7 +39,7 @@ export function useContextStateRoot(props: UseContextStateRootProps): UseContext
 		() => {
 				// Initialize
 			globalContextState.rootStateSubscriptions[uniqueId] = {
-					getUpdates,
+					updateFilter,
 					onStateUpdated: handleStateUpdated
 				};
 

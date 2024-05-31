@@ -30,7 +30,7 @@ const ChildComponent = (props: {
 	const [formValues, setFormValues] = useContextState<FormState>({
 		stateKey: STATE_KEY,
 		defaultValue: DEFAULT_FORM_STATE,
-		getUpdates: true,
+		updateFilter: true,
 		subscriberId: scope
 	});
 
@@ -63,7 +63,7 @@ const ContextSummary = ({ contextId }: { contextId: string }) => {
 	const [contextValues] = useContextStateBatch({
 		contextIds: [contextId],
 		// stateKeys: [STATE_KEY], // optional, it can subscribe to particular states or anything inside this context
-		getUpdates: true,
+		updateFilter: true,
 		subscriberId: scope
 	});
 
@@ -85,7 +85,7 @@ const Summary = () => {
 	// update summary on changes
 	const [contextStateRoot] = useContextStateRoot({
 		subscriberId: "Component",
-		getUpdates: true
+		updateFilter: true
 	});
 
 	logInfo(`[${scope}]: render`, { contextStateRoot })
@@ -113,7 +113,7 @@ interface ComponentProps {
 
 const Component = (props: ComponentProps) => {
 	// this is not a state, in real app we only set it once at the beginning
-	REACT_SIMPLE_UTIL.LOGGING.LOG_LEVEL = props.logLevel;
+	REACT_SIMPLE_UTIL.LOGGING.logLevel = props.logLevel;
 
 	logInfo("[Component]: render", props);
 

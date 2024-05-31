@@ -1,17 +1,18 @@
 import { useEffect } from "react";
-import { StateReturn, ValueOrCallback, ValueOrCallbackWithArgs, logTrace, useForceUpdate, useUniqueId } from "@react-simple/react-simple-util";
+import { ValueOrCallback, ValueOrCallbackWithArgs, logTrace, useForceUpdate, useUniqueId } from "@react-simple/react-simple-util";
 import { removeGlobalContextState, setGlobalContextState } from "./functions";
 import { useStateContextId } from "./StateContext";
 import { ContextStateChangeArgs } from "./types";
 import { getOrCreateGlobalContextStateEntry } from "./internal/functions";
+import { StateReturn } from "types";
 
-// By calling useContextState() the parent component subscribes to context state changes according to the specified getUpdates value.
+// By calling useContextState() the parent component subscribes to context state changes according to the specified updateFilter value.
 // useContextState() always returns a state, either the existing one or the default value.
 // By default the closest <StateContext> is used in the DOM hierarchy, but it can be overriden by specifying an exact contextId.
 
 export interface UseContextStateProps<State> {
 	stateKey: string;
-	getUpdates: ValueOrCallbackWithArgs<ContextStateChangeArgs<State>, boolean>; // true: always, false: never, function: selective
+	updateFilter: ValueOrCallbackWithArgs<ContextStateChangeArgs<State>, boolean>; // true: always, false: never, function: selective
 	defaultValue: ValueOrCallback<State>;
 
 	// optional
@@ -22,10 +23,10 @@ export interface UseContextStateProps<State> {
 	merge?: (oldState: State, newState: Partial<State>) => State;
 }
 
-// By calling useContextState() the parent component subscribes to state changes according to the specified getUpdates value.
+// By calling useContextState() the parent component subscribes to state changes according to the specified updateFilter value.
 // By default state from the closes StateContext is used from the DOM hierarchy, but it can be overridden by specifying contextId.
 export function useContextState<State>(props: UseContextStateProps<State>): StateReturn<State> {
-	const { stateKey, getUpdates, defaultValue, merge, subscriberId } = props;
+	const { stateKey, updateFilter, defaultValue, merge, subscriberId } = props;
 
 	const uniqueId = useUniqueId({ prefix: subscriberId }); // generate permanent uniqueId for this hook instance
 	const forceUpdate = useForceUpdate();
@@ -49,7 +50,7 @@ export function useContextState<State>(props: UseContextStateProps<State>): Stat
 		() => {
 			// Initialize
 			stateEntry.stateSubscriptions[uniqueId] = {
-				getUpdates,
+				updateFilter,
 				onStateUpdated: handleStateUpdated
 			};
 
