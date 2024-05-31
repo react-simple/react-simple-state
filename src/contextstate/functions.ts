@@ -1,5 +1,5 @@
 import {
-	ValueOrCallback, ValueOrCallbackWithArgs, getResolvedArray, getResolvedCallbackValue, getResolvedCallbackValueWithArgs, logDebug, logTrace
+	ValueOrCallback, ValueOrCallbackWithArgs, getResolvedArray, getResolvedCallbackValue, getResolvedCallbackValueWithArgs, logTrace
 } from "@react-simple/react-simple-util";
 import { mergeState, notifyContextSubscribers } from "internal/functions";
 import { getGlobalContextEntry, getGlobalContextStateEntry, getGlobalContextStateRoot, getOrCreateGlobalContextStateEntry } from "./internal/functions";
@@ -49,7 +49,11 @@ const setGlobalContextState_default = <State>(
 	// set new state
 	stateEntry.state = newState;
 
-	logDebug(`[setGlobalContextState] ${contextId} ${stateKey}`, { args, contextId, stateEntry, oldState, newState });
+	logTrace(
+		`[setGlobalContextState] contextId=${contextId}, stateKey=${stateKey}`,
+		{ args, contextId, stateEntry, oldState, newState },
+		REACT_SIMPLE_STATE.LOGGING.logLevel);
+	
 	notifyContextSubscribers(stateEntry, { contextId, stateKey, oldState, newState }); // notify context subscribers too
 
 	return newState;
@@ -82,7 +86,11 @@ const initGlobalContextState_default = <State>(contextId: string, stateKey: stri
 	// set new state
 	stateEntry.state = newState;
 
-	logDebug(`[initGlobalContextState] ${contextId} ${stateKey}`, { contextId, stateKey, state, stateEntry, oldState, newState });
+	logTrace(
+		`[initGlobalContextState] contextId=${contextId}, stateKey=${stateKey}`,
+		{ contextId, stateKey, state, stateEntry, oldState, newState },
+		REACT_SIMPLE_STATE.LOGGING.logLevel);
+	
 	notifyContextSubscribers(stateEntry!, { contextId, stateKey, oldState, newState }); // notify context subscribers too
 	return newState;
 };
@@ -101,27 +109,24 @@ export const initGlobalContextState = <State>(contextId: string, stateKey: strin
 // Use initContextState() to reset the state, but keep the subscriptions.
 // (Also, unlike initContextState(), subscribers won't get notified on the state change; it's completely silent. It's for finalizers.)
 const removeGlobalContextState_default = (contextIds: string | string[], stateKeys?: string | string[]) => {
-	const scope = "removeGlobalContextState";
-	logDebug(`[${scope}]`, { contextIds, stateKeys });
+	logTrace(log => log(
+		`[removeGlobalContextState]: contextIds=[${getResolvedArray(contextIds).join(", ")}]`,
+		{ contextIds, stateKeys },
+		REACT_SIMPLE_STATE.LOGGING.logLevel
+	));
 
 	for (const contextId of getResolvedArray(contextIds)) {
 		if (stateKeys) {
 			for (const stateKey of getResolvedArray(stateKeys)) {
 				if (getGlobalContextStateEntry(contextId, stateKey)) {
-					logTrace(`[${scope}] ${contextId} ${stateKey}`, { contextId, stateKey });
-
 					// notifySubscribers() is not called intentionally here
-
 					delete getGlobalContextEntry(contextId)!.contextState[stateKey];
 				}
 			}
 		}
 		else {
 			if (getGlobalContextEntry(contextId)) {
-				logTrace(`[${scope}] ${contextId}`, { contextId });
-
 				// notifySubscribers() is not called intentionally here
-
 				delete getGlobalContextStateRoot().rootState[contextId];
 			}
 		}

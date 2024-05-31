@@ -3,6 +3,7 @@ import { ValueOrCallbackWithArgs, logTrace, useForceUpdate, useUniqueId } from "
 import { ContextGlobalState, ContextStateChangeArgs } from "./types";
 import { setGlobalContextState } from "./functions";
 import { getGlobalContextStateRoot } from "./internal/functions";
+import { REACT_SIMPLE_STATE } from "data";
 
 // By calling useContextStateRoot() the parent component subscribes to any changes within any contexts (regardless of stateKey); read-only access.
 // By default the closest <StateContext> is used in the DOM hierarchy, but it can be overriden by specifying an exact contextId.
@@ -28,11 +29,11 @@ export function useContextStateRoot(props: UseContextStateRootProps): UseContext
 
 	// local function called by other hooks via subscription on state changes to update this hook and its parent component
 	const handleStateUpdated = () => {
-		logTrace("[useContextStateRoot.handleStateUpdated]", { props, uniqueId, globalContextState });
+		logTrace("[useContextStateRoot]: handleStateUpdated", { props, uniqueId, globalContextState }, REACT_SIMPLE_STATE.LOGGING.logLevel);
 		forceUpdate();
 	};
 
-	logTrace("[useContextStateRoot]", { props, uniqueId, globalContextState });
+	logTrace("[useContextStateRoot]: Rendering", { props, uniqueId, globalContextState }, REACT_SIMPLE_STATE.LOGGING.logLevel);
 
 	// subscribe/unsubscribe
 	useEffect(
@@ -43,7 +44,7 @@ export function useContextStateRoot(props: UseContextStateRootProps): UseContext
 					onStateUpdated: handleStateUpdated
 				};
 
-			logTrace("[useContextStateRoot.initialize]", { props, uniqueId, globalContextState });
+			logTrace("[useContextStateRoot]: Initialized", { props, uniqueId, globalContextState }, REACT_SIMPLE_STATE.LOGGING.logLevel);
 
 			return () => {
 				// Finalize

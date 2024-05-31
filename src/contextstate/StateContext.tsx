@@ -26,7 +26,11 @@ export const StateContext = ({ contextId, children }: StateContextProviderProps)
 			const registeredUniqueId = REGISTERED_STATE_CONTEXT_UNIQUE_IDS[contextId];
 
 			if (registeredUniqueId && registeredUniqueId !== uniqueId) {
-				logWarning(`[StateContext]: StateContext with contextId='${contextId}' is already registed.`);
+				logWarning(
+					`[StateContext]: StateContext with contextId='${contextId}' is already registed.`,
+					undefined,
+					REACT_SIMPLE_STATE.LOGGING.logLevel
+				);
 			}
 
 			REGISTERED_STATE_CONTEXT_UNIQUE_IDS[contextId] = uniqueId;

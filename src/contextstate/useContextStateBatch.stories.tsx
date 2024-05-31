@@ -1,6 +1,6 @@
 import * as React from "react";
 import type { Meta } from '@storybook/react';
-import { LOG_LEVELS, LogLevel, REACT_SIMPLE_UTIL, StorybookComponent, logInfo } from '@react-simple/react-simple-util';
+import { LOG_LEVELS, LogLevel,  StorybookComponent, logInfo } from '@react-simple/react-simple-util';
 import { Stack, Cluster, ObjectRenderer } from '@react-simple/react-simple-ui';
 import { initGlobalContextState, removeGlobalContextState } from './functions';
 import { useContextState } from './useContextState';
@@ -34,7 +34,7 @@ const ChildComponent = (props: {
 		subscriberId: scope
 	});
 
-	logInfo(`[${scope}]: render`, { props, formValues });
+	logInfo(`[${scope}]: render`, { props, formValues }, REACT_SIMPLE_STATE.LOGGING.logLevel);
 
 	return (
 		<Stack>
@@ -67,7 +67,7 @@ const ContextSummary = ({ contextId }: { contextId: string }) => {
 		subscriberId: scope
 	});
 
-	logInfo(`[${scope}]: render`, { contextValues });
+	logInfo(`[${scope}]: render`, { contextValues }, REACT_SIMPLE_STATE.LOGGING.logLevel);
 
 	return (
 		<Stack>
@@ -88,7 +88,7 @@ const Summary = () => {
 		updateFilter: true
 	});
 
-	logInfo(`[${scope}]: render`, { contextStateRoot })
+	logInfo(`[${scope}]: render`, { contextStateRoot }, REACT_SIMPLE_STATE.LOGGING.logLevel)
 
 	return (
 		<Stack>
@@ -113,9 +113,9 @@ interface ComponentProps {
 
 const Component = (props: ComponentProps) => {
 	// this is not a state, in real app we only set it once at the beginning
-	REACT_SIMPLE_UTIL.LOGGING.logLevel = props.logLevel;
+	REACT_SIMPLE_STATE.LOGGING.logLevel = props.logLevel;
 
-	logInfo("[Component]: render", props);
+	logInfo("[Component]: render", props, undefined, REACT_SIMPLE_STATE.LOGGING.logLevel);
 
 	// optional step: this is the root component, we initialize the state here and will remove it when finalizing
 	useEffect(

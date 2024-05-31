@@ -1,5 +1,5 @@
 import {
-	ValueOrCallback, ValueOrCallbackWithArgs, getResolvedArray, getResolvedCallbackValue, getResolvedCallbackValueWithArgs, logDebug, logTrace
+	ValueOrCallback, ValueOrCallbackWithArgs, getResolvedArray, getResolvedCallbackValue, getResolvedCallbackValueWithArgs, logTrace
 } from "@react-simple/react-simple-util";
 import { mergeState, notifySubscribers } from "internal/functions";
 import { getGlobalStateEntry, getGlobalStateRoot, getOrCreateGlobalStateEntry } from "./internal/functions";
@@ -46,7 +46,7 @@ const setGlobalState_default = <State>(
 	// set new state
 	stateEntry.state = newState;
 
-	logDebug(`[setGlobalState] ${stateKey}`, { args, oldState, newState, stateEntry });
+	logTrace(`[setGlobalState] stateKey=${stateKey}`, { args, oldState, newState, stateEntry }, REACT_SIMPLE_STATE.LOGGING.logLevel);
 	notifySubscribers(stateEntry, { stateKey, oldState, newState });
 	return newState;
 };
@@ -77,7 +77,7 @@ const initGlobalState_default = <State>(stateKey: string, state: ValueOrCallback
 	// set new state
 	stateEntry.state = newState;
 
-	logDebug(`[initGlobalState] ${stateKey}`, { stateKey, state, oldState, newState, stateEntry });
+	logTrace(`[initGlobalState] stateKey=${stateKey}`, { stateKey, state, oldState, newState, stateEntry }, REACT_SIMPLE_STATE.LOGGING.logLevel);
 	notifySubscribers(stateEntry!, { stateKey, oldState, newState });
 	return newState;
 };
@@ -94,16 +94,15 @@ export const initGlobalState = <State>(stateKey: string, state: ValueOrCallback<
 // Use initGlobalState() to reset the state, but keep the subscriptions.
 // (Also, unlike initContextState(), subscribers won't get notified on the state change; it's completely silent. It's for finalizers.)
 const removeGlobalState_default = (stateKeys: string | string[]) => {
-	logDebug("[removeGlobalState]", { stateKeys });
+	logTrace(log => log(
+		`[removeGlobalState] stateKeys=[${getResolvedArray(stateKeys).join(", ")}]`,
+		{ stateKeys },
+		REACT_SIMPLE_STATE.LOGGING.logLevel
+	));
 
 	for (const stateKey of getResolvedArray(stateKeys)) {
-		if (getGlobalStateEntry(stateKey)) {
-			logTrace(`[removeGlobalState] ${stateKey}`, { stateKey });
-
-			// notifySubscribers() is not called intentionally here
-
-			delete getGlobalStateRoot().rootState[stateKey];
-		}
+		// notifySubscribers() is not called intentionally here
+		delete getGlobalStateRoot().rootState[stateKey];
 	}
 };
 

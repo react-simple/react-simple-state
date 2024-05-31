@@ -4,6 +4,7 @@ import { StateChangeArgs } from "types";
 import { GlobalState } from "./types";
 import { setGlobalState } from "./functions";
 import { getGlobalStateRoot } from "./internal/functions";
+import { REACT_SIMPLE_STATE } from "data";
 
 // By calling useGlobalStateRoot() the parent component subscribes to any global state changes (root level) according to the specified updateFilter value.
 
@@ -19,8 +20,6 @@ export type UseGlobalStateReturn = [GlobalState, typeof setGlobalState];
 
 export function useGlobalStateRoot(props: UseGlobalStateRootProps): UseGlobalStateReturn {
 	const { updateFilter, subscriberId } = props;
-	const scope = "[react-simple-state] useGlobalStateRoot";
-
 	const uniqueId = useUniqueId({ prefix: subscriberId }); // generate permanent uniqueId for this hook instance
 	const forceUpdate = useForceUpdate();
 
@@ -28,11 +27,11 @@ export function useGlobalStateRoot(props: UseGlobalStateRootProps): UseGlobalSta
 
 	// local function called by other hooks via subscription on state changes to update this hook and its parent component
 	const handleStateUpdated = () => {
-		logTrace(`[${scope}]: handleStateUpdated`, { props, uniqueId, globalState });
+		logTrace("[useGlobalStateRoot]: handleStateUpdated", { props, uniqueId, globalState }, REACT_SIMPLE_STATE.LOGGING.logLevel);
 		forceUpdate();
 	};
 
-	logTrace(`[${scope}]`, { props, uniqueId, globalState });
+	logTrace("[useGlobalStateRoot]: Rendering", { props, uniqueId, globalState }, REACT_SIMPLE_STATE.LOGGING.logLevel);
 
 	// subscribe/unsubscribe
 	useEffect(
@@ -43,7 +42,7 @@ export function useGlobalStateRoot(props: UseGlobalStateRootProps): UseGlobalSta
 				onStateUpdated: handleStateUpdated
 			};
 
-			logTrace(`[${scope}]: initialize`, { props, uniqueId, globalState });
+			logTrace("[useGlobalStateRoot]: Initialized", { props, uniqueId, globalState }, REACT_SIMPLE_STATE.LOGGING.logLevel);
 
 			return () => {
 				// Finalize

@@ -3,6 +3,7 @@ import { ValueOrCallbackWithArgs, convertArrayToDictionary2, logTrace, useForceU
 import { setGlobalContextState } from "./functions";
 import { ContextStateChangeArgs } from "./types";
 import { getGlobalContextEntry, getOrCreateGlobalContextEntry, getOrCreateGlobalContextStateEntry } from "./internal/functions";
+import { REACT_SIMPLE_STATE } from "data";
 
 // By calling useContextStateBatch() the parent component subscribes to multiple context state changes at once according to the specified updateFilter value.
 // useContextStateBatch() does not always return a state, the returned state can be undefined, if not yet set.
@@ -40,11 +41,20 @@ export function useContextStateBatch(props: UseContextStateBatchProps): UseConte
 
 	// local function called by other hooks via subscription on state changes to update this hook and its parent component
 	const handleStateUpdated = () => {
-		logTrace("[useContextStateBatch.handleStateUpdated]", { props, uniqueId, stateEntries });
+		logTrace(log => log(
+			`[useContextStateBatch]: handleStateUpdated contextIds=[${props.contextIds.join(", ")}], stateKeys=[${props.stateKeys?.join?.(", ")}]`,
+			{ props, uniqueId, stateEntries },
+			REACT_SIMPLE_STATE.LOGGING.logLevel
+		));
+
 		forceUpdate();
 	};
 
-	logTrace("[useContextStateBatch]", { props, uniqueId, stateEntries });
+	logTrace(log => log(
+		`[useContextStateBatch]: Rendering contextIds=[${props.contextIds.join(", ")}], stateKeys=[${props.stateKeys?.join?.(", ")}]`,
+		{ props, uniqueId, stateEntries },
+		REACT_SIMPLE_STATE.LOGGING.logLevel
+	));
 
 	// subscribe/unsubscribe
 	useEffect(
@@ -73,7 +83,11 @@ export function useContextStateBatch(props: UseContextStateBatchProps): UseConte
 				});
 			}
 
-			logTrace("[useContextStateBatch.initialize]", { props, uniqueId, stateEntries });
+			logTrace(log => log(
+				`[useContextStateBatch]: Initialized contextIds=[${props.contextIds.join(", ")}], stateKeys=[${props.stateKeys?.join?.(", ")}]`,
+				{ props, uniqueId, stateEntries },
+				REACT_SIMPLE_STATE.LOGGING.logLevel
+			));
 
 			return () => {
 				// Finalize

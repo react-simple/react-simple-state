@@ -1,12 +1,13 @@
 import * as React from "react";
 import type { Meta } from '@storybook/react';
 import { useGlobalState } from './useGlobalState';
-import { LOG_LEVELS, LogLevel, REACT_SIMPLE_UTIL, StorybookComponent, logInfo } from '@react-simple/react-simple-util';
+import { LOG_LEVELS, LogLevel, StorybookComponent, logInfo } from '@react-simple/react-simple-util';
 import { Stack, Cluster, ObjectRenderer } from '@react-simple/react-simple-ui';
 import { initGlobalState, removeGlobalState } from './functions';
 import { useGlobalStateRoot } from './useGlobalStateRoot';
 import { useEffect } from 'react';
 import { getGlobalStateRoot } from './internal/functions';
+import { REACT_SIMPLE_STATE } from "data";
 
 const TITLE = "Global state / Simple global state";
 const DESC = <>The form state is global. When field values change <strong>all components</strong> get updated. (See console log.)</>;
@@ -29,7 +30,7 @@ const ChildComponent = (props: {
 		subscriberId: scope
 	});
 
-	logInfo(`[${scope}]: render`, { props, formValues });
+	logInfo(`[${scope}]: render`, { props, formValues }, REACT_SIMPLE_STATE.LOGGING.logLevel);
 
 	return (
 		<Stack>
@@ -68,7 +69,7 @@ const Summary = () => {
 		updateFilter: true
 	});
 
-	logInfo(`[${scope}]: render`, { formValues, globalState });
+	logInfo(`[${scope}]: render`, { formValues, globalState }, REACT_SIMPLE_STATE.LOGGING.logLevel);
 
 	return (
 		<Stack>
@@ -87,9 +88,9 @@ interface ComponentProps {
 
 const Component = (props: ComponentProps) => {
 	// this is not a state, in real app we only set it once at the beginning
-	REACT_SIMPLE_UTIL.LOGGING.logLevel = props.logLevel;
+	REACT_SIMPLE_STATE.LOGGING.logLevel = props.logLevel;
 
-	logInfo("[Component]: render", props);
+	logInfo("[Component]: render", props, undefined, REACT_SIMPLE_STATE.LOGGING.logLevel);
 
 	// optional step: this is the root component, we initialize the state here and will remove it when finalizing
 	useEffect(

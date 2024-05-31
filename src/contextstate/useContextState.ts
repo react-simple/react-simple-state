@@ -5,6 +5,7 @@ import { useStateContextId } from "./StateContext";
 import { ContextStateChangeArgs } from "./types";
 import { getOrCreateGlobalContextStateEntry } from "./internal/functions";
 import { StateReturn } from "types";
+import { REACT_SIMPLE_STATE } from "data";
 
 // By calling useContextState() the parent component subscribes to context state changes according to the specified updateFilter value.
 // useContextState() always returns a state, either the existing one or the default value.
@@ -39,11 +40,19 @@ export function useContextState<State>(props: UseContextStateProps<State>): Stat
 
 	// local function called by other hooks via subscription on state changes to update this hook and its parent component
 	const handleStateUpdated = () => {
-		logTrace("[useContextState.handleStateUpdated]", { props, uniqueId, contextId, stateEntry });
+		logTrace(
+			`[useContextState]: handleStateUpdated contextId=${props.contextId}`,
+			{ props, uniqueId, contextId, stateEntry },
+			REACT_SIMPLE_STATE.LOGGING.logLevel);
+		
 		forceUpdate();
 	};
 
-	logTrace("[useContextState]", { props, uniqueId, contextId, stateEntry });
+	logTrace(
+		`[useContextState]: Rendering contextId=${props.contextId}`,
+		{ props, uniqueId, contextId, stateEntry },
+		REACT_SIMPLE_STATE.LOGGING.logLevel
+	);
 
 	// subscribe/unsubscribe
 	useEffect(
@@ -54,7 +63,11 @@ export function useContextState<State>(props: UseContextStateProps<State>): Stat
 				onStateUpdated: handleStateUpdated
 			};
 
-			logTrace("[useContextState.initialize]", { props, uniqueId, contextId, stateEntry });
+			logTrace(
+				`[useContextState]: Initialized contextId=${props.contextId}`,
+				{ props, uniqueId, contextId, stateEntry },
+				REACT_SIMPLE_STATE.LOGGING.logLevel
+			);
 
 			return () => {
 				// Finalize

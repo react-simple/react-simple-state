@@ -3,6 +3,7 @@ import { ValueOrCallbackWithArgs, convertArrayToDictionary, logTrace, useForceUp
 import { setGlobalState } from "./functions";
 import { StateChangeArgs } from "types";
 import { getOrCreateGlobalStateEntry } from "./internal/functions";
+import { REACT_SIMPLE_STATE } from "data";
 
 // By calling useGlobalStateBatch() the parent component subscribes to state changes of multiple state keys according to the specified updateFilter value.
 // useGlobalStateBatch() does not always return a state, the returned state can be undefined, if not yet set.
@@ -23,7 +24,6 @@ export type UseGlobalStateWatchBatchReturn = [
 
 export function useGlobalStateBatch(props: UseGlobalStateBatchProps): UseGlobalStateWatchBatchReturn {
 	const { stateKeys, updateFilter, subscriberId } = props;
-	const scope = `[react-simple-state] useGlobalStateBatch [${stateKeys.join(", ")}]`;
 
 	const uniqueId = useUniqueId({ prefix: subscriberId }); // generate permanent uniqueId for this hook instance
 	const forceUpdate = useForceUpdate();
@@ -33,11 +33,20 @@ export function useGlobalStateBatch(props: UseGlobalStateBatchProps): UseGlobalS
 
 	// local function called by other hooks via subscription on state changes to update this hook and its parent component
 	const handleStateUpdated = () => {
-		logTrace(`[${scope}]: handleStateUpdated`, { props, uniqueId, stateEntries });
+		logTrace(log => log(
+			`[useGlobalStateBatch]: handleStateUpdated stateKeys=[${props.stateKeys.join(", ")}]`,
+			{ props, uniqueId, stateEntries },
+			REACT_SIMPLE_STATE.LOGGING.logLevel
+		));
+
 		forceUpdate();
 	};
 
-	logTrace(`[${scope}]`, { props, uniqueId, stateEntries });
+	logTrace(log => log(
+		`[useGlobalStateBatch]: Rendering stateKeys=[${props.stateKeys.join(", ")}]`,
+		{ props, uniqueId, stateEntries },
+		REACT_SIMPLE_STATE.LOGGING.logLevel
+	));
 
 	// subscribe/unsubscribe
 	useEffect(
@@ -50,7 +59,11 @@ export function useGlobalStateBatch(props: UseGlobalStateBatchProps): UseGlobalS
 				};
 			});
 
-			logTrace(`[${scope}]: initialize`, { props, uniqueId, stateEntries });
+			logTrace(log => log(
+				`[useGlobalStateBatch]: Initialized stateKeys=[${props.stateKeys.join(", ")}]`,
+				{ props, uniqueId, stateEntries },
+				REACT_SIMPLE_STATE.LOGGING.logLevel
+			));
 
 			return () => {
 				// Finalize

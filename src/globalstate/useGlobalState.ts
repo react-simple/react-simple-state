@@ -3,6 +3,7 @@ import { ValueOrCallback, ValueOrCallbackWithArgs, logTrace, useForceUpdate, use
 import { setGlobalState } from "./functions";
 import { StateChangeArgs, StateReturn } from "types";
 import { getOrCreateGlobalStateEntry } from "./internal/functions";
+import { REACT_SIMPLE_STATE } from "data";
 
 // By calling useGlobalState() the parent component subscribes to state changes according to the specified updateFilter value.
 // useGlobalState() always returns a state, either the existing one or the default value.
@@ -22,7 +23,6 @@ export interface UseGlobalStateProps<State> {
 
 export function useGlobalState<State>(props: UseGlobalStateProps<State>): StateReturn<State> {
 	const { stateKey, updateFilter, defaultValue, merge, subscriberId } = props;
-	const scope = `[react-simple-state] useGlobalState ${stateKey}`;
 
 	const uniqueId = useUniqueId({ prefix: subscriberId }); // generate permanent uniqueId for this hook instance
 	const forceUpdate = useForceUpdate();
@@ -32,11 +32,18 @@ export function useGlobalState<State>(props: UseGlobalStateProps<State>): StateR
 
 	// local function called by other hooks via subscription on state changes to update this hook and its parent component
 	const handleStateUpdated = () => {
-		logTrace(`[${scope}]: handleStateUpdated`, { props, uniqueId, stateEntry });
+		logTrace(
+			`[useGlobaState]: handleStateUpdated stateKey=${props.stateKey}`,
+			{ props, uniqueId, stateEntry },
+			REACT_SIMPLE_STATE.LOGGING.logLevel);
+		
 		forceUpdate();
 	};
 
-	logTrace(`[${scope}]`, { props, uniqueId, stateEntry });
+	logTrace(
+		`[useGlobaState]: Rendering stateKey=${props.stateKey}`,
+		{ props, uniqueId, stateEntry },
+		REACT_SIMPLE_STATE.LOGGING.logLevel);
 
 	// subscribe/unsubscribe
 	useEffect(
@@ -47,7 +54,10 @@ export function useGlobalState<State>(props: UseGlobalStateProps<State>): StateR
 					onStateUpdated: handleStateUpdated
 				};
 
-				logTrace(`[${scope}]: initialize`, { props, uniqueId, stateEntry });
+			logTrace(
+				`[useGlobaState]: Initialized stateKey=${props.stateKey}`,
+				{ props, uniqueId, stateEntry },
+				REACT_SIMPLE_STATE.LOGGING.logLevel);
 
 			return () => {
 				// Finalize

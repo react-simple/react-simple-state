@@ -3,6 +3,7 @@ import { logTrace } from "@react-simple/react-simple-util";
 import { ContextStateChangeArgs, ContextStateEntry } from "contextstate/types";
 import { getGlobalStateRoot } from "globalstate/internal/functions";
 import { getGlobalContextStateRoot } from "contextstate/internal/functions";
+import { REACT_SIMPLE_STATE } from "data";
 
 // Internal artifacts are not exported
 
@@ -16,7 +17,7 @@ export function mergeState<State>(
 }
 
 export const notifySubscribers = <State>(stateEntry: StateEntry<State>, args: StateChangeArgs<State>) => {
-	logTrace("[notifySubscribers]", { stateEntry, args });
+	logTrace(`[notifySubscribers] stateKey=${stateEntry.stateKey}`, { stateEntry, args }, REACT_SIMPLE_STATE.LOGGING.logLevel);
 
 	// state key level subscriptions
 	for (const sub of Object.values(stateEntry.stateSubscriptions)) {
@@ -35,7 +36,11 @@ export const notifySubscribers = <State>(stateEntry: StateEntry<State>, args: St
 
 export const notifyContextSubscribers = <State>(stateEntry: ContextStateEntry<State>, args: ContextStateChangeArgs<State>) => {
 	const context = getGlobalContextStateRoot().rootState[stateEntry.contextId];
-	logTrace("[notifyContextSubscribers]", { stateEntry, args, context });
+	logTrace(
+		`[notifyContextSubscribers]: contextId=${stateEntry.contextId}, stateKey=${stateEntry.stateKey}`,
+		{ stateEntry, args, context },
+		REACT_SIMPLE_STATE.LOGGING.logLevel
+	);
 
 	// state key level subscriptions
 	for (const sub of Object.values(stateEntry.stateSubscriptions)) {

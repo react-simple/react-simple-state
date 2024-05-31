@@ -1,5 +1,13 @@
-import { Nullable, ValueOrCallbackWithArgs } from "@react-simple/react-simple-util";
+import { LogLevel, Nullable, ValueOrCallbackWithArgs } from "@react-simple/react-simple-util";
 import { ReactSimpleStateDependencyInjection } from "types.di";
+
+export interface ReactSimpleState {
+	readonly ROOT_CONTEXT_ID: string;
+	LOGGING: {
+		logLevel: LogLevel; // for functions in react-simple-state
+	};
+	DI: ReactSimpleStateDependencyInjection;
+}
 
 export interface StateChangeArgs<State> {
 	stateKey: string;
@@ -20,11 +28,6 @@ export interface StateEntry<State, TStateChangeArgs = StateChangeArgs<State>> {
 
 	// subscribed hooks to this entry to be updated on change
 	readonly stateSubscriptions: { [uniqueId: string]: Nullable<StateChangeSubscription<TStateChangeArgs>> };
-}
-
-export interface ReactSimpleState {
-	readonly ROOT_CONTEXT_ID: string;
-	readonly DI: ReactSimpleStateDependencyInjection;
 }
 
 export type StateSetter<State> = (

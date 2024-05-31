@@ -6,6 +6,10 @@ const stub: any = () => { };
 export const REACT_SIMPLE_STATE: ReactSimpleState = {
 	ROOT_CONTEXT_ID: "ROOT_CONTEXT",
 
+	LOGGING: {
+		logLevel: "error" // for functions in react-simple-state
+	},
+
 	// stubs are replaced by the corresponding functions.ts files
 	DI: {
 		globalState: {
