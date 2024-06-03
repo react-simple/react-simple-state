@@ -121,7 +121,11 @@ const Component = (props: ComponentProps) => {
 	useEffect(
 		() => {
 			// Initialize
-			initGlobalContextState(ROOT_CONTEXT_ID, STATE_KEY, DEFAULT_FORM_STATE);
+			initGlobalContextState({
+				contextId: ROOT_CONTEXT_ID,
+				stateKey: STATE_KEY,
+				state: DEFAULT_FORM_STATE
+			});
 
 			return () => {
 				// Finalize
@@ -146,7 +150,13 @@ const Component = (props: ComponentProps) => {
 
 				<Cluster>
 					<input type="button" value="Reset state" style={{ padding: "0.5em 1em" }}
-						onClick={() => { initGlobalContextState("context_1", STATE_KEY, DEFAULT_FORM_STATE); }} />
+						onClick={() => {
+							initGlobalContextState({
+								contextId: "context_1",
+								stateKey: STATE_KEY,
+								state: DEFAULT_FORM_STATE
+							});
+						}} />
 				</Cluster>
 
 				<ChildComponent title="Component 1" fieldNames={["field_a", "field_b"]} />
@@ -159,7 +169,13 @@ const Component = (props: ComponentProps) => {
 
 				<Cluster>
 					<input type="button" value="Reset state" style={{ padding: "0.5em 1em" }}
-						onClick={() => { initGlobalContextState("context_2", STATE_KEY, DEFAULT_FORM_STATE); }} />
+						onClick={() => {
+							initGlobalContextState({
+								contextId: "context_2",
+								stateKey: STATE_KEY,
+								state: DEFAULT_FORM_STATE
+							});
+						}} />
 				</Cluster>
 
 				<ChildComponent title="Component 3" fieldNames={["field_a", "field_b", "field_c", "field_d"]} />

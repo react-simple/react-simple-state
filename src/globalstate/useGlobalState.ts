@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { ValueOrCallback, ValueOrCallbackWithArgs, logTrace, useForceUpdate, useUniqueId } from "@react-simple/react-simple-util";
 import { setGlobalState } from "./functions";
-import { StateChangeArgs, StateReturn } from "types";
+import { SetStateOptions, StateChangeArgs, StateReturn } from "types";
 import { getOrCreateGlobalStateEntry } from "./internal/functions";
 import { REACT_SIMPLE_STATE } from "data";
 
@@ -69,9 +69,19 @@ export function useGlobalState<State>(props: UseGlobalStateProps<State>): StateR
 
 	const setState = (
 		state: ValueOrCallbackWithArgs<State, Partial<State>>,
-		customMerge?: (oldState: State, newState: Partial<State>) => State
+		options?: SetStateOptions<State>
 	) => {
-		return setGlobalState({ stateKey, state, defaultValue, customMerge: customMerge || merge });
+		return setGlobalState(
+			{
+				stateKey,
+				state,
+				defaultValue,
+			},
+			{
+				...options,
+				customMerge: options?.customMerge || merge
+			}
+		);
 	};
 
 	return [

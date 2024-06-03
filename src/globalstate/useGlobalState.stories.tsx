@@ -96,7 +96,7 @@ const Component = (props: ComponentProps) => {
 	useEffect(
 		() => {
 			// Initialize
-			initGlobalState(STATE_KEY, DEFAULT_FORM_STATE);
+			initGlobalState({ stateKey: STATE_KEY, state: DEFAULT_FORM_STATE });
 
 			return () => {
 				// Finalize
@@ -111,7 +111,7 @@ const Component = (props: ComponentProps) => {
 
 			<Cluster>
 				<input type="button" value="Reset state" style={{ padding: "0.5em 1em" }}
-					onClick={() => initGlobalState(STATE_KEY, DEFAULT_FORM_STATE)} />
+					onClick={() => initGlobalState({ stateKey: STATE_KEY, state: DEFAULT_FORM_STATE })} />
 
 				<input type="button" value="Trace GLOBAL_STATE" style={{ padding: "0.5em 1em" }}
 					onClick={() => console.log("GLOBAL_STATE", getGlobalStateRoot())} />

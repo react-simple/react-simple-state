@@ -4,7 +4,7 @@ import {
 import { mergeState, notifySubscribers } from "internal/functions";
 import { getGlobalStateEntry, getGlobalStateRoot, getOrCreateGlobalStateEntry } from "./internal/functions";
 import { REACT_SIMPLE_STATE } from "data";
-import { GLOBAL_STATE } from "internal/globalstate.data";
+import { SetStateOptions } from "types";
 
 // Gets the current global state, but the caller component/hook won't get updated on state changes. Suitable for event handlers.
 // Use the useGlobalState() hook to get the parent component/hook updated on state changes.
@@ -19,7 +19,7 @@ REACT_SIMPLE_STATE.DI.globalState.getGlobalState = getGlobalState_default;
 // Use the useGlobalState() hook to get the parent component/hook updated on state changes.
 export const getGlobalState = <State>(stateKey: string, defaultValue: ValueOrCallback<State>) => {
 	// get current state or default state
-	return REACT_SIMPLE_STATE.DI.globalState.getGlobalState<State>(stateKey, defaultValue, GLOBAL_STATE, getGlobalState_default);
+	return REACT_SIMPLE_STATE.DI.globalState.getGlobalState<State>(stateKey, defaultValue, getGlobalState_default);
 };
 
 // Sets global state and notifies all subscribed components. Accepts partial state which will be merged with the current state.
@@ -27,11 +27,11 @@ const setGlobalState_default = <State>(
 	args: {
 		stateKey: string;
 		state: ValueOrCallbackWithArgs<State, Partial<State>>;
-		defaultValue: ValueOrCallback<State>;
-		customMerge?: (oldState: State, newState: Partial<State>) => State;
-	}
+		defaultValue: ValueOrCallback<State>;		
+	},
+	options?: SetStateOptions<State>
 ) => {
-	const { stateKey, state, defaultValue, customMerge } = args;
+	const { stateKey, state, defaultValue } = args;
 
 	// get current state
 	const stateEntry = getOrCreateGlobalStateEntry<State>(stateKey, defaultValue);
@@ -41,13 +41,13 @@ const setGlobalState_default = <State>(
 	const setStateArgs = getResolvedCallbackValueWithArgs(state, oldState);
 
 	// priority: custom merge from actual set state call, custom merge from use hook props or default shallow merge
-	const newState = mergeState(oldState, setStateArgs, customMerge);
+	const newState = mergeState(oldState, setStateArgs, options?.customMerge);
 
 	// set new state
 	stateEntry.state = newState;
 
 	logTrace(`[setGlobalState] stateKey=${stateKey}`, { args, oldState, newState, stateEntry }, REACT_SIMPLE_STATE.LOGGING.logLevel);
-	notifySubscribers(stateEntry, { stateKey, oldState, newState });
+	notifySubscribers(stateEntry, { stateKey, oldState, newState }, options);
 	return newState;
 };
 
@@ -58,15 +58,23 @@ export const setGlobalState = <State>(
 	args: {
 		stateKey: string;
 		state: ValueOrCallbackWithArgs<State, Partial<State>>;
-		defaultValue: ValueOrCallback<State>;
-		customMerge?: (oldState: State, newState: Partial<State>) => State;
-	}
+		defaultValue: ValueOrCallback<State>;		
+	},
+	options?: SetStateOptions<State>
 ) => {
-	return REACT_SIMPLE_STATE.DI.globalState.setGlobalState(args, GLOBAL_STATE, setGlobalState_default);
+	return REACT_SIMPLE_STATE.DI.globalState.setGlobalState(args, options || {}, setGlobalState_default);
 };
 
 // Sets global state and notifies all subscribed components. Requires complete state since no merging will occur.
-const initGlobalState_default = <State>(stateKey: string, state: ValueOrCallback<State>) => {
+const initGlobalState_default = <State>(
+	args: {
+		stateKey: string;
+		state: ValueOrCallback<State>;
+	},
+	options?: SetStateOptions<State>
+) => {
+	const { stateKey, state } = args;
+
 	const existingStateEntry = getGlobalStateEntry<State>(stateKey);
 	const oldState: State | undefined = existingStateEntry?.state; // we don't ask for defaultValue just for this
 
@@ -78,15 +86,21 @@ const initGlobalState_default = <State>(stateKey: string, state: ValueOrCallback
 	stateEntry.state = newState;
 
 	logTrace(`[initGlobalState] stateKey=${stateKey}`, { stateKey, state, oldState, newState, stateEntry }, REACT_SIMPLE_STATE.LOGGING.logLevel);
-	notifySubscribers(stateEntry!, { stateKey, oldState, newState });
+	notifySubscribers(stateEntry!, { stateKey, oldState, newState }, options);
 	return newState;
 };
 
 REACT_SIMPLE_STATE.DI.globalState.initGlobalState = initGlobalState_default;
 
 // Sets global state and notifies all subscribed components. Requires complete state since no merging will occur.
-export const initGlobalState = <State>(stateKey: string, state: ValueOrCallback<State>) => {
-	return REACT_SIMPLE_STATE.DI.globalState.initGlobalState(stateKey, state, GLOBAL_STATE, initGlobalState_default);
+export const initGlobalState = <State>(
+	args: {
+		stateKey: string;
+		state: ValueOrCallback<State>;
+	},
+	options?: SetStateOptions<State>
+) => {
+	return REACT_SIMPLE_STATE.DI.globalState.initGlobalState(args, options || {}, initGlobalState_default);
 };
 
 // Be careful, because removeGlobalState() will effectively kill all subscriptions so any existing components
@@ -113,5 +127,5 @@ REACT_SIMPLE_STATE.DI.globalState.removeGlobalState = removeGlobalState_default;
 // Use initGlobalState() to reset the state, but keep the subscriptions.
 // (Also, unlike initContextState(), subscribers won't get notified on the state change; it's completely silent. It's for finalizers.)
 export const removeGlobalState = (stateKeys: string | string[]) => {
-	REACT_SIMPLE_STATE.DI.globalState.removeGlobalState(stateKeys, GLOBAL_STATE, removeGlobalState_default);
+	REACT_SIMPLE_STATE.DI.globalState.removeGlobalState(stateKeys, removeGlobalState_default);
 }

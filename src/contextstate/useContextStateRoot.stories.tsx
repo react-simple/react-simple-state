@@ -100,7 +100,11 @@ const Component = (props: ComponentProps) => {
 	useEffect(
 		() => {
 			// Initialize
-			initGlobalContextState(ROOT_CONTEXT_ID, STATE_KEY, DEFAULT_FORM_STATE);
+			initGlobalContextState({
+				contextId: ROOT_CONTEXT_ID,
+				stateKey: STATE_KEY,
+				state: DEFAULT_FORM_STATE
+			});
 
 			return () => {
 				// Finalize
@@ -118,7 +122,13 @@ const Component = (props: ComponentProps) => {
 
 			<Cluster>
 				<input type="button" value="Reset state" style={{ padding: "0.5em 1em" }}
-					onClick={() => initGlobalContextState(ROOT_CONTEXT_ID, STATE_KEY, DEFAULT_FORM_STATE)} />
+					onClick={() => {
+						initGlobalContextState({
+							contextId: ROOT_CONTEXT_ID,
+							stateKey: STATE_KEY,
+							state: DEFAULT_FORM_STATE
+						});
+					}} />
 
 				<input type="button" value="Trace CONTEXT_STATE_ROOT" style={{ padding: "0.5em 1em" }}
 					onClick={() => console.log("CONTEXT_STATE", getGlobalContextStateRoot())} />

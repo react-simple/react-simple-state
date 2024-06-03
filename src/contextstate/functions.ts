@@ -4,7 +4,7 @@ import {
 import { mergeState, notifyContextSubscribers } from "internal/functions";
 import { getGlobalContextEntry, getGlobalContextStateEntry, getGlobalContextStateRoot, getOrCreateGlobalContextStateEntry } from "./internal/functions";
 import { REACT_SIMPLE_STATE } from "data";
-import { GLOBAL_CONTEXT_STATE } from "internal/contextstate.data";
+import { SetStateOptions } from "types";
 
 // Gets the current context state, but the caller component/hook won't get updated on state changes. Suitable for event handlers.
 // Use the useContextState() hook to get the parent component/hook updated on state changes.
@@ -20,7 +20,7 @@ REACT_SIMPLE_STATE.DI.contextState.getGlobalContextState = getGlobalContextState
 export const getGlobalContextState = <State>(contextId: string, stateKey: string, defaultValue: ValueOrCallback<State>) => {
 	// get current state or default state
 	return REACT_SIMPLE_STATE.DI.contextState.getGlobalContextState<State>(
-		contextId, stateKey, defaultValue, GLOBAL_CONTEXT_STATE, getGlobalContextState_default
+		contextId, stateKey, defaultValue, getGlobalContextState_default
 	);
 };
 
@@ -31,10 +31,10 @@ const setGlobalContextState_default = <State>(
 		stateKey: string;
 		state: ValueOrCallbackWithArgs<State, Partial<State>>;
 		defaultValue: ValueOrCallback<State>;
-		customMerge?: (oldState: State, newState: Partial<State>) => State;
-	}
+	},
+	options?: SetStateOptions<State>
 ) => {
-	const { contextId, stateKey, state, defaultValue, customMerge } = args;
+	const { contextId, stateKey, state, defaultValue } = args;
 
 	// get current state
 	const stateEntry = getOrCreateGlobalContextStateEntry(contextId, stateKey, defaultValue);
@@ -44,7 +44,7 @@ const setGlobalContextState_default = <State>(
 	const setStateArgs = getResolvedCallbackValueWithArgs(state, oldState);
 
 	// priority: custom merge from actual set state call, custom merge from use hook props or default shallow merge
-	const newState = mergeState(oldState, setStateArgs, customMerge);
+	const newState = mergeState(oldState, setStateArgs, options?.customMerge);
 
 	// set new state
 	stateEntry.state = newState;
@@ -54,7 +54,7 @@ const setGlobalContextState_default = <State>(
 		{ args, contextId, stateEntry, oldState, newState },
 		REACT_SIMPLE_STATE.LOGGING.logLevel);
 	
-	notifyContextSubscribers(stateEntry, { contextId, stateKey, oldState, newState }); // notify context subscribers too
+	notifyContextSubscribers(stateEntry, { contextId, stateKey, oldState, newState }, options); // notify context subscribers too
 
 	return newState;
 };
@@ -68,14 +68,23 @@ export const setGlobalContextState = <State>(
 		stateKey: string;
 		state: ValueOrCallbackWithArgs<State, Partial<State>>;
 		defaultValue: ValueOrCallback<State>;
-		customMerge?: (oldState: State, newState: Partial<State>) => State;
-	}
+	},
+	options?: SetStateOptions<State>
 ) => {
-	return REACT_SIMPLE_STATE.DI.contextState.setGlobalContextState(args, GLOBAL_CONTEXT_STATE, setGlobalContextState_default);
+	return REACT_SIMPLE_STATE.DI.contextState.setGlobalContextState(args, options || {}, setGlobalContextState_default);
 }
 
 // Sets global state and notifies all subscribed components. Requires complete state since no merging will occur.
-const initGlobalContextState_default = <State>(contextId: string, stateKey: string, state: ValueOrCallback<State>) => {
+const initGlobalContextState_default = <State>(
+	args: {
+		contextId: string;
+		stateKey: string;
+		state: ValueOrCallback<State>;
+	},
+	options?: Omit<SetStateOptions<State>, "customMerge">
+) => {
+	const { contextId, stateKey, state } = args;
+
 	const existing = getGlobalContextStateEntry<State>(contextId, stateKey);
 	const stateEntry = getOrCreateGlobalContextStateEntry(contextId, stateKey, state);
 
@@ -91,18 +100,23 @@ const initGlobalContextState_default = <State>(contextId: string, stateKey: stri
 		{ contextId, stateKey, state, stateEntry, oldState, newState },
 		REACT_SIMPLE_STATE.LOGGING.logLevel);
 	
-	notifyContextSubscribers(stateEntry!, { contextId, stateKey, oldState, newState }); // notify context subscribers too
+	notifyContextSubscribers(stateEntry!, { contextId, stateKey, oldState, newState }, options); // notify context subscribers too
 	return newState;
 };
 
 REACT_SIMPLE_STATE.DI.contextState.initGlobalContextState = initGlobalContextState_default;
 
 // Sets global state and notifies all subscribed components. Requires complete state since no merging will occur.
-export const initGlobalContextState = <State>(contextId: string, stateKey: string, state: ValueOrCallback<State>) => {
-	return REACT_SIMPLE_STATE.DI.contextState.initGlobalContextState(
-		contextId, stateKey, state, GLOBAL_CONTEXT_STATE, initGlobalContextState_default
-	);
-}
+export const initGlobalContextState = <State>(
+	args: {
+		contextId: string;
+		stateKey: string;
+		state: ValueOrCallback<State>;
+	},
+	options?: Omit<SetStateOptions<State>, "customMerge">
+) => {
+	return REACT_SIMPLE_STATE.DI.contextState.initGlobalContextState(args, options || {}, initGlobalContextState_default);
+};
 
 // Be careful, because removeContextState() will effectively kill all subscriptions so any existing components
 // subscribed with useContextState() won't get state upates anymore.
@@ -140,5 +154,5 @@ REACT_SIMPLE_STATE.DI.contextState.removeGlobalContextState = removeGlobalContex
 // Use initContextState() to reset the state, but keep the subscriptions.
 // (Also, unlike initContextState(), subscribers won't get notified on the state change; it's completely silent. It's for finalizers.)
 export const removeGlobalContextState = (contextIds: string | string[], stateKeys?: string | string[]) => {
-	REACT_SIMPLE_STATE.DI.contextState.removeGlobalContextState(contextIds, stateKeys, GLOBAL_CONTEXT_STATE, removeGlobalContextState_default);
+	REACT_SIMPLE_STATE.DI.contextState.removeGlobalContextState(contextIds, stateKeys, removeGlobalContextState_default);
 }

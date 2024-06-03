@@ -4,7 +4,7 @@ import { removeGlobalContextState, setGlobalContextState } from "./functions";
 import { useStateContextId } from "./StateContext";
 import { ContextStateChangeArgs } from "./types";
 import { getOrCreateGlobalContextStateEntry } from "./internal/functions";
-import { StateReturn } from "types";
+import { SetStateOptions, StateReturn } from "types";
 import { REACT_SIMPLE_STATE } from "data";
 
 // By calling useContextState() the parent component subscribes to context state changes according to the specified updateFilter value.
@@ -82,15 +82,20 @@ export function useContextState<State>(props: UseContextStateProps<State>): Stat
 
 	const setState = (
 		state: ValueOrCallbackWithArgs<State, Partial<State>>,
-		customMerge?: (oldState: State, newState: Partial<State>) => State
+		options?: SetStateOptions<State>
 	) => {
-		return setGlobalContextState({
-			contextId,
-			stateKey,
-			state,
-			defaultValue,
-			customMerge: customMerge || merge
-		});
+		return setGlobalContextState(
+			{
+				contextId,
+				stateKey,
+				state,
+				defaultValue
+			},
+			{
+				...options,
+				customMerge: options?.customMerge || merge
+			}
+		);
 	};
 
 	return [

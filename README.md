@@ -14,7 +14,7 @@ Features:
 	- Example: define sections in a form where all inputs can access their current section with section state
 - Additional hooks are available to access the root state directly or multiple state entries at once in a batch by specifying *contextId/statekey* arrays. All these hooks support subscription therefore caller components can subscribe to root state changes, multiple state keys or context ids at once.
 - **Dependency injection** for pluggable architecture. All the important methods can be replaced with custom implementation by setting REACT_SIMPLE_STATE.DI members.
-- See **Storybook examples** for details
+- See **Storybook examples** for samples for all features
 
 # Usage
 

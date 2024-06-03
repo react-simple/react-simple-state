@@ -1,37 +1,37 @@
 import { ValueOrCallback, ValueOrCallbackWithArgs } from "@react-simple/react-simple-util";
 import { ContextGlobalState, ContextState, ContextStateEntry } from "contextstate/types";
 import { GlobalState } from "globalstate/types";
-import { StateEntry } from "types";
+import { SetStateOptions, StateChangeArgs, StateEntry } from "types";
 
 export interface ReactSimpleStateDependencyInjection {
 	globalState: {
 		getGlobalState: <State>(
 			stateKey: string,
 			defaultValue: ValueOrCallback<State>,
-			globalState: GlobalState,
 			defaultImpl: ReactSimpleStateDependencyInjection["globalState"]["getGlobalState"]
 		) => State;
+		
 		setGlobalState: <State>(
 			args: {
 				stateKey: string;
 				state: ValueOrCallbackWithArgs<State, Partial<State>>;
 				defaultValue: ValueOrCallback<State>;
-				customMerge?: (oldState: State, newState: Partial<State>) => State;
 			},
-			globalState: GlobalState,
+			options: SetStateOptions<State>,
 			defaultImpl: ReactSimpleStateDependencyInjection["globalState"]["setGlobalState"]
 		) => State;
 
 		initGlobalState: <State>(
-			stateKey: string,
-			state: ValueOrCallback<State>,
-			globalState: GlobalState,
+			args: {
+				stateKey: string;
+				state: ValueOrCallback<State>;
+			},
+			options: Omit<SetStateOptions<State>, "customMerge">,
 			defaultImpl: ReactSimpleStateDependencyInjection["globalState"]["initGlobalState"]
 		) => State;
 
 		removeGlobalState: (
 			stateKeys: string | string[],
-			globalState: GlobalState,
 			defaultImpl: ReactSimpleStateDependencyInjection["globalState"]["removeGlobalState"]
 		) => void;
 
@@ -59,8 +59,8 @@ export interface ReactSimpleStateDependencyInjection {
 	contextState: {
 		getGlobalContextState: <State>(
 			contextId: string,
-			stateKey: string, defaultValue: ValueOrCallback<State>,
-			contextState: ContextGlobalState,
+			stateKey: string,
+			defaultValue: ValueOrCallback<State>,
 			defaultImpl: ReactSimpleStateDependencyInjection["contextState"]["getGlobalContextState"]
 		) => State;
 
@@ -70,24 +70,24 @@ export interface ReactSimpleStateDependencyInjection {
 				stateKey: string;
 				state: ValueOrCallbackWithArgs<State, Partial<State>>;
 				defaultValue: ValueOrCallback<State>;
-				customMerge?: (oldState: State, newState: Partial<State>) => State;
 			},
-			contextState: ContextGlobalState,
+			options: SetStateOptions<State>,
 			defaultImpl: ReactSimpleStateDependencyInjection["contextState"]["setGlobalContextState"]
 		) => State; 
 
 		initGlobalContextState: <State>(
-			contextId: string,
-			stateKey: string,
-			state: ValueOrCallback<State>,
-			contextState: ContextGlobalState,
+			args: {
+				contextId: string,
+				stateKey: string,
+				state: ValueOrCallback<State>
+			},
+			options: Omit<SetStateOptions<State>, "customMerge">,
 			defaultImpl: ReactSimpleStateDependencyInjection["contextState"]["initGlobalContextState"]
 		) => State;
 		
 		removeGlobalContextState: (
 			contextIds: string | string[],
 			stateKeys: string | string[] | undefined,
-			contextState: ContextGlobalState,
 			defaultImpl: ReactSimpleStateDependencyInjection["contextState"]["removeGlobalContextState"]
 		) => void;
 

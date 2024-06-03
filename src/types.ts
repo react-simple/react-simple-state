@@ -1,4 +1,4 @@
-import { LogLevel, Nullable, ValueOrCallbackWithArgs } from "@react-simple/react-simple-util";
+import { LogLevel, ValueOrCallbackWithArgs } from "@react-simple/react-simple-util";
 import { ReactSimpleStateDependencyInjection } from "types.di";
 
 export interface ReactSimpleState {
@@ -22,17 +22,33 @@ export interface StateChangeSubscription<StateChangeArgs> {
 	readonly updateFilter: ValueOrCallbackWithArgs<StateChangeArgs, boolean>;
 }
 
-export interface StateEntry<State, TStateChangeArgs = StateChangeArgs<State>> {
+export interface StateChangeSubscriptionsByUniqueId<State, TStateChangeArgs extends StateChangeArgs<State> = StateChangeArgs<State>> {
+	[uniqueId: string]: StateChangeSubscription<TStateChangeArgs> | undefined;
+}
+
+export interface StateEntry<State, TStateChangeArgs extends StateChangeArgs<State> = StateChangeArgs<State>> {
 	readonly stateKey: string;
 	state: State;
 
 	// subscribed hooks to this entry to be updated on change
-	readonly stateSubscriptions: { [uniqueId: string]: Nullable<StateChangeSubscription<TStateChangeArgs>> };
+	readonly stateSubscriptions: StateChangeSubscriptionsByUniqueId<State, TStateChangeArgs>;
 }
 
 export type StateSetter<State> = (
 	state: ValueOrCallbackWithArgs<State, Partial<State>>,
-	customMerge?: (oldState: State, newState: Partial<State>) => State
+	options?: SetStateOptions<State>
 ) => State;
 
 export type StateReturn<State> = [State, StateSetter<State>];
+
+export interface SetStateOptions<State> {
+	customMerge?: (oldState: State, newState: Partial<State>) => State;
+	
+	// notify subscibers of parent state entries based of "name.name.name" formatted state keys 
+	// (uses fullQualifiedMemberNameMatchSubTree() from react-simple-mapping)
+	notifyParents?: boolean; 
+
+	// notify subscibers of child state entries based of "name.name.name" formatted state keys
+	// (uses fullQualifiedMemberNameMatchSubTree() from react-simple-mapping)
+	notifyChildren?: boolean;
+}
