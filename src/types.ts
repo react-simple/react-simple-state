@@ -1,54 +1,43 @@
 import { LogLevel, ValueOrCallbackWithArgs } from "@react-simple/react-simple-util";
+import { GlobalStateChangeFilters, GlobalStateSubscriptionsEntry } from "subscription/types";
 import { ReactSimpleStateDependencyInjection } from "types.di";
 
+export interface GlobalStateRoot {
+	// recursive object stateFullQualifiedName is passed to getChildMemberValue() from react-simple-mapping as full qualified child name
+	state: object;
+	subscriptions: GlobalStateSubscriptionsEntry;
+}
+
 export interface ReactSimpleState {
-	readonly ROOT_CONTEXT_ID: string;
 	LOGGING: {
 		logLevel: LogLevel; // for functions in react-simple-state
 	};
+
+	ROOT_STATE: GlobalStateRoot;
 	DI: ReactSimpleStateDependencyInjection;
-}
 
-export interface StateChangeArgs<State> {
-	stateKey: string;
-	oldState: State | undefined; // during initialization by default value, we have no previous state
-	newState: State;
-}
-
-export interface StateChangeSubscription<StateChangeArgs> {
-	readonly onStateUpdated: (args: StateChangeArgs) => void;
-
-	// true to get all update, false to get no updates, function to get updates selectively
-	readonly updateFilter: ValueOrCallbackWithArgs<StateChangeArgs, boolean>;
-}
-
-export interface StateChangeSubscriptionsByUniqueId<State, TStateChangeArgs extends StateChangeArgs<State> = StateChangeArgs<State>> {
-	[uniqueId: string]: StateChangeSubscription<TStateChangeArgs> | undefined;
-}
-
-export interface StateEntry<State, TStateChangeArgs extends StateChangeArgs<State> = StateChangeArgs<State>> {
-	readonly stateKey: string;
-	state: State;
-
-	// subscribed hooks to this entry to be updated on change
-	readonly stateSubscriptions: StateChangeSubscriptionsByUniqueId<State, TStateChangeArgs>;
+	readonly DEFAULTS: {
+		changeFilters: {
+			always: GlobalStateChangeFilters; // always update all subscribed components (parent, children, this state)
+			never: GlobalStateChangeFilters; // never update any subscribed components
+			defaultSubscribeFilters: GlobalStateChangeFilters; // default for subscribeToChanges when using useGlobalState()
+			defaultUpdateFilters: GlobalStateChangeFilters; // default for updateStates when using setGlobalState()
+		};
+	}
 }
 
 export type StateSetter<State> = (
-	state: ValueOrCallbackWithArgs<State, Partial<State>>,
+	state: ValueOrCallbackWithArgs<State | undefined, Partial<State>>,
 	options?: SetStateOptions<State>
 ) => State;
 
 export type StateReturn<State> = [State, StateSetter<State>];
 
-export interface SetStateOptions<State> {
-	customMerge?: (oldState: State, newState: Partial<State>) => State;
-	
-	// notify subscibers of parent state entries based of "name.name.name" formatted state keys 
-	// (uses fullQualifiedMemberNameMatchSubTree() from react-simple-mapping)
-	notifyParents?: boolean; 
+export interface InitStateOptions<State> {
+	// default is REACT_SIMPLE_STATE.DEFAULTS.changeFilters.defaultUpdateFilters
+	readonly updateState?: GlobalStateChangeFilters<State>;
+}
 
-	// notify subscibers of child state entries based of "name.name.name" formatted state keys
-	// (uses fullQualifiedMemberNameMatchSubTree() from react-simple-mapping)
-	notifyChildren?: boolean;
+export interface SetStateOptions<State> extends InitStateOptions<State>  {
+	readonly mergeState?: (oldState: State, newState: Partial<State>) => State;
 }

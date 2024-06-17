@@ -1,105 +1,107 @@
-import { useEffect } from "react";
-import { ValueOrCallback, ValueOrCallbackWithArgs, logTrace, useForceUpdate, useUniqueId } from "@react-simple/react-simple-util";
-import { removeGlobalContextState, setGlobalContextState } from "./functions";
-import { useStateContextId } from "./StateContext";
-import { ContextStateChangeArgs } from "./types";
-import { getOrCreateGlobalContextStateEntry } from "./internal/functions";
-import { SetStateOptions, StateReturn } from "types";
-import { REACT_SIMPLE_STATE } from "data";
+export { };
 
-// By calling useContextState() the parent component subscribes to context state changes according to the specified updateFilter value.
-// useContextState() always returns a state, either the existing one or the default value.
-// By default the closest <StateContext> is used in the DOM hierarchy, but it can be overriden by specifying an exact contextId.
+// import { useEffect } from "react";
+// import { ValueOrCallback, ValueOrCallbackWithArgs, logTrace, useForceUpdate, useUniqueId } from "@react-simple/react-simple-util";
+// import { removeGlobalContextState, setGlobalContextState } from "./functions";
+// import { useStateContextId } from "./StateContext";
+// import { ContextStateChangeArgs } from "./types";
+// import { getOrCreateGlobalContextStateEntry } from "./internal/functions";
+// import { SetStateOptions, StateReturn } from "types";
+// import { REACT_SIMPLE_STATE } from "data";
 
-export interface UseContextStateProps<State> {
-	stateKey: string;
-	updateFilter: ValueOrCallbackWithArgs<ContextStateChangeArgs<State>, boolean>; // true: always, false: never, function: selective
-	defaultValue: ValueOrCallback<State>;
+// // By calling useContextState() the parent component subscribes to context state changes according to the specified updateFilter value.
+// // useContextState() always returns a state, either the existing one or the default value.
+// // By default the closest <StateContext> is used in the DOM hierarchy, but it can be overriden by specifying an exact contextId.
 
-	// optional
-	contextId?: string; // by default the closest StateContext is used in the DOM hierarchy, but it can be overriden
-	subscriberId?: string; // custom metadata for tracing info only
+// export interface UseContextStateProps<State> {
+// 	stateKey: string;
+// 	updateFilter: ValueOrCallbackWithArgs<ContextStateChangeArgs<State>, boolean>;
+// 	defaultValue: ValueOrCallback<State>;
 
-	// custom merge function, if not specified shallow object merge is used using the spread operator (root members are merged)
-	merge?: (oldState: State, newState: Partial<State>) => State;
-}
+// 	// optional
+// 	contextId?: string; // by default the closest StateContext is used in the DOM hierarchy, but it can be overriden
+// 	subscriberId?: string; // custom metadata for tracing info only
 
-// By calling useContextState() the parent component subscribes to state changes according to the specified updateFilter value.
-// By default state from the closes StateContext is used from the DOM hierarchy, but it can be overridden by specifying contextId.
-export function useContextState<State>(props: UseContextStateProps<State>): StateReturn<State> {
-	const { stateKey, updateFilter, defaultValue, merge, subscriberId } = props;
+// 	// custom merge function, if not specified shallow object merge is used using the spread operator (root members are merged)
+// 	merge?: (oldState: State, newState: Partial<State>) => State;
+// }
 
-	const uniqueId = useUniqueId({ prefix: subscriberId }); // generate permanent uniqueId for this hook instance
-	const forceUpdate = useForceUpdate();
+// // By calling useContextState() the parent component subscribes to state changes according to the specified updateFilter value.
+// // By default state from the closes StateContext is used from the DOM hierarchy, but it can be overridden by specifying contextId.
+// export function useContextState<State>(props: UseContextStateProps<State>): StateReturn<State> {
+// 	const { stateKey, updateFilter, defaultValue, merge, subscriberId } = props;
 
-	// we use the closest context or the root context, but if contextId is specified and is invalid, we can have no context
-	const contextId = useStateContextId(props.contextId);
+// 	const uniqueId = useUniqueId({ prefix: subscriberId }); // generate permanent uniqueId for this hook instance
+// 	const forceUpdate = useForceUpdate();
 
-	// get current state
-	const stateEntry = getOrCreateGlobalContextStateEntry<State>(contextId, stateKey, defaultValue);
+// 	// we use the closest context or the root context, but if contextId is specified and is invalid, we can have no context
+// 	const contextId = useStateContextId(props.contextId);
 
-	// local function called by other hooks via subscription on state changes to update this hook and its parent component
-	const handleStateUpdated = () => {
-		logTrace(
-			`[useContextState]: handleStateUpdated contextId=${props.contextId}`,
-			{ props, uniqueId, contextId, stateEntry },
-			REACT_SIMPLE_STATE.LOGGING.logLevel);
+// 	// get current state
+// 	const stateEntry = getOrCreateGlobalContextStateEntry<State>(contextId, stateKey, defaultValue);
+
+// 	// local function called by other hooks via subscription on state changes to update this hook and its parent component
+// 	const handleStateUpdated = () => {
+// 		logTrace(
+// 			`[useContextState]: handleStateUpdated contextId=${props.contextId}`,
+// 			{ props, uniqueId, contextId, stateEntry },
+// 			REACT_SIMPLE_STATE.LOGGING.logLevel);
 		
-		forceUpdate();
-	};
+// 		forceUpdate();
+// 	};
 
-	logTrace(
-		`[useContextState]: Rendering contextId=${props.contextId}`,
-		{ props, uniqueId, contextId, stateEntry },
-		REACT_SIMPLE_STATE.LOGGING.logLevel
-	);
+// 	logTrace(
+// 		`[useContextState]: Rendering contextId=${props.contextId}`,
+// 		{ props, uniqueId, contextId, stateEntry },
+// 		REACT_SIMPLE_STATE.LOGGING.logLevel
+// 	);
 
-	// subscribe/unsubscribe
-	useEffect(
-		() => {
-			// Initialize
-			stateEntry.stateSubscriptions[uniqueId] = {
-				updateFilter,
-				onStateUpdated: handleStateUpdated
-			};
+// 	// subscribe/unsubscribe
+// 	useEffect(
+// 		() => {
+// 			// Initialize
+// 			stateEntry.stateSubscriptions[uniqueId] = {
+// 				updateFilter,
+// 				onStateUpdated: handleStateUpdated
+// 			};
 
-			logTrace(
-				`[useContextState]: Initialized contextId=${props.contextId}`,
-				{ props, uniqueId, contextId, stateEntry },
-				REACT_SIMPLE_STATE.LOGGING.logLevel
-			);
+// 			logTrace(
+// 				`[useContextState]: Initialized contextId=${props.contextId}`,
+// 				{ props, uniqueId, contextId, stateEntry },
+// 				REACT_SIMPLE_STATE.LOGGING.logLevel
+// 			);
 
-			return () => {
-				// Finalize
-				delete stateEntry!.stateSubscriptions[uniqueId];
+// 			return () => {
+// 				// Finalize
+// 				delete stateEntry!.stateSubscriptions[uniqueId];
 
-				// delete the entire state entry with all subscriptions
-				removeGlobalContextState(contextId, stateKey);
-			}
-		},
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-		[]);
+// 				// delete the entire state entry with all subscriptions
+// 				removeGlobalContextState(contextId, stateKey);
+// 			}
+// 		},
+// 		// eslint-disable-next-line react-hooks/exhaustive-deps
+// 		[]);
 
-	const setState = (
-		state: ValueOrCallbackWithArgs<State, Partial<State>>,
-		options?: SetStateOptions<State>
-	) => {
-		return setGlobalContextState(
-			{
-				contextId,
-				stateKey,
-				state,
-				defaultValue
-			},
-			{
-				...options,
-				customMerge: options?.customMerge || merge
-			}
-		);
-	};
+// 	const setState = (
+// 		state: ValueOrCallbackWithArgs<State, Partial<State>>,
+// 		options?: SetStateOptions<State>
+// 	) => {
+// 		return setGlobalContextState(
+// 			{
+// 				contextId,
+// 				stateKey,
+// 				state,
+// 				defaultValue
+// 			},
+// 			{
+// 				...options,
+// 				customMerge: options?.customMerge || merge
+// 			}
+// 		);
+// 	};
 
-	return [
-		stateEntry.state,
-		setState
-	];
-}
+// 	return [
+// 		stateEntry.state,
+// 		setState
+// 	];
+// }

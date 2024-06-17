@@ -3,16 +3,13 @@ import type { Meta } from '@storybook/react';
 import { useGlobalState } from './useGlobalState';
 import { LOG_LEVELS, LogLevel, StorybookComponent, logInfo } from '@react-simple/react-simple-util';
 import { Stack, Cluster, ObjectRenderer } from '@react-simple/react-simple-ui';
-import { initGlobalState, removeGlobalState } from './functions';
-import { useGlobalStateRoot } from './useGlobalStateRoot';
+import { getGlobalStateOrEmpty, initGlobalState, removeGlobalState } from './functions';
 import { useEffect } from 'react';
-import { getGlobalStateRoot } from './internal/functions';
 import { REACT_SIMPLE_STATE } from "data";
 
 const TITLE = "Global state / Simple global state";
 const DESC = <>The form state is global. When field values change <strong>all components</strong> get updated. (See console log.)</>;
 
-const STATE_KEY = "form_values";
 type FormState = Record<string, string>;
 const DEFAULT_FORM_STATE: FormState = {};
 
@@ -24,9 +21,9 @@ const ChildComponent = (props: {
 	const scope = `ChildComponent[title=${title}]`;
 
 	const [formValues, setFormValues] = useGlobalState<FormState>({
-		stateKey: STATE_KEY,
+		fullQualifiedName: "form_values",
 		defaultValue: DEFAULT_FORM_STATE,
-		updateFilter: true,
+		subscribedState: { thisState: "always" },
 		subscriberId: scope
 	});
 
@@ -56,20 +53,27 @@ const ChildComponent = (props: {
 const Summary = () => {
 	const scope = "Summary";
 
-	const [formValues] = useGlobalState<FormState>({
-		stateKey: STATE_KEY,
-		defaultValue: DEFAULT_FORM_STATE,
-		updateFilter: true,
+	// get this component updated if anything changes in global state
+	const [globalState] = useGlobalState({
+		fullQualifiedName: "", // root
+		defaultValue: {},
 		subscriberId: scope
 	});
 
-	// get this component updated if anything changes in global state
-	const [globalState] = useGlobalStateRoot({
-		subscriberId: "Component",
-		updateFilter: true
-	});
+	// const [formValues] = useGlobalState<FormState>({
+	// 	stateFullQualifiedName: "form_values",
+	// 	defaultValue: DEFAULT_FORM_STATE,
+	// 	stateChangeTriggers: { thisState: "always" },
+	// 	subscriberId: scope
+	// });
 
-	logInfo(`[${scope}]: render`, { formValues, globalState }, REACT_SIMPLE_STATE.LOGGING.logLevel);
+	const formValues = (globalState as any)["form_values"];
+
+	logInfo(
+		`[${scope}]: render`,
+		{ formValues, globalState, subscriptions: REACT_SIMPLE_STATE.ROOT_STATE.subscriptions },
+		REACT_SIMPLE_STATE.LOGGING.logLevel
+	);
 
 	return (
 		<Stack>
@@ -90,17 +94,17 @@ const Component = (props: ComponentProps) => {
 	// this is not a state, in real app we only set it once at the beginning
 	REACT_SIMPLE_STATE.LOGGING.logLevel = props.logLevel;
 
-	logInfo("[Component]: render", props, undefined, REACT_SIMPLE_STATE.LOGGING.logLevel);
+	logInfo("[Component]: render", props, REACT_SIMPLE_STATE.LOGGING.logLevel);
 
 	// optional step: this is the root component, we initialize the state here and will remove it when finalizing
 	useEffect(
 		() => {
 			// Initialize
-			initGlobalState({ stateKey: STATE_KEY, state: DEFAULT_FORM_STATE });
+			initGlobalState("form_values", DEFAULT_FORM_STATE);
 
 			return () => {
 				// Finalize
-				removeGlobalState(STATE_KEY);
+				removeGlobalState("form_values");
 			};
 		},
 		[]);
@@ -111,10 +115,13 @@ const Component = (props: ComponentProps) => {
 
 			<Cluster>
 				<input type="button" value="Reset state" style={{ padding: "0.5em 1em" }}
-					onClick={() => initGlobalState({ stateKey: STATE_KEY, state: DEFAULT_FORM_STATE })} />
+					onClick={() => initGlobalState("form_values", DEFAULT_FORM_STATE)} />
 
-				<input type="button" value="Trace GLOBAL_STATE" style={{ padding: "0.5em 1em" }}
-					onClick={() => console.log("GLOBAL_STATE", getGlobalStateRoot())} />
+				<input type="button" value="Trace Global State" style={{ padding: "0.5em 1em" }}
+					onClick={() => console.log("STATE", getGlobalStateOrEmpty(""))} />
+
+				<input type="button" value="Trace subscriptions" style={{ padding: "0.5em 1em" }}
+					onClick={() => console.log("SUBSCRIPTIONS", REACT_SIMPLE_STATE.ROOT_STATE.subscriptions)} />
 			</Cluster>
 
 			<ChildComponent title="Component 1" fieldNames={["field_a", "field_b"]} />
