@@ -23,7 +23,7 @@ it('setGlobalState.childState.value', () => {
   resetGlobalState();
   setGlobalState("a.b.c", 2, {});
 
-  const value = (REACT_SIMPLE_STATE.ROOT_STATE.state as any)["a"]?.["b"]?.["c"];
+  const value = (REACT_SIMPLE_STATE.ROOT_STATE.state as typeof TEST_DATA)?.a?.b?.c;
   expect(value).toBe(2);
 
   const value2 = getGlobalState("a.b.c", {});
@@ -49,7 +49,7 @@ it('setGlobalState.childState.update.thisState', () => {
   expect(onUpdate).toHaveBeenCalledTimes(1);
   
   expect(changeArgs).toBeDefined();  
-  expect(changeArgs?.stateFullQualifiedName).toBe("a.b.c");
+  expect(changeArgs?.fullQualifiedName).toBe("a.b.c");
   expect(changeArgs?.oldState).toBeUndefined();
   expect(changeArgs?.newState).toBe(2);
   
@@ -100,7 +100,7 @@ it('setGlobalState.childState.update.parentState.called', () => {
   expect(onUpdate).toHaveBeenCalledTimes(1);
 
   expect(changeArgs).toBeDefined();
-  expect(changeArgs?.stateFullQualifiedName).toBe("a.b.c");
+  expect(changeArgs?.fullQualifiedName).toBe("a.b.c");
   expect(changeArgs?.oldState).toBeUndefined();
   expect(changeArgs?.newState).toBe(2);
 
@@ -128,7 +128,7 @@ it('setGlobalState.childState.update.childState.called', () => {
   expect(onUpdate).toHaveBeenCalledTimes(1);
 
   expect(changeArgs).toBeDefined();
-  expect(changeArgs?.stateFullQualifiedName).toBe("a.b");
+  expect(changeArgs?.fullQualifiedName).toBe("a.b");
   expect(changeArgs?.oldState).toBeUndefined();
   expect(sameObjects(changeArgs?.newState, { c: 2 })).toBe(true);
 
@@ -156,7 +156,7 @@ it('setGlobalState.childState.update.childState.called.conditional.triggerPath',
     fullQualifiedName: "a.b.c",
     subscribedState: {
       parentState: {
-        condition: t => t.stateFullQualifiedName === "a.b"
+        condition: t => t.fullQualifiedName === "a.b"
       }
     },
     onUpdate: onUpdate1

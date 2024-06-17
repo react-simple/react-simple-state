@@ -1,16 +1,17 @@
 import * as React from "react";
+import { useEffect } from 'react';
 import type { Meta } from '@storybook/react';
-import { useGlobalState } from './useGlobalState';
 import { LOG_LEVELS, LogLevel, StorybookComponent, logInfo } from '@react-simple/react-simple-util';
 import { Stack, Cluster, ObjectRenderer } from '@react-simple/react-simple-ui';
-import { getGlobalStateOrEmpty, initGlobalState, removeGlobalState } from './functions';
-import { useEffect } from 'react';
+import { useGlobalState } from './useGlobalState';
+import { getGlobalState, initGlobalState, removeGlobalState } from './functions';
 import { REACT_SIMPLE_STATE } from "data";
+import { useGlobalStateBatch } from "./useGlobalStateBatch";
 
-const TITLE = "Global state / Simple global state";
+const TITLE = "Global state / Update filter";
 const DESC = <>
-	The form state is global. When field values change <strong>all components</strong> get updated.
-	The <strong>useGlobalState()</strong> hook is used. See console log for details.
+	The form state is global. When field values change <strong>only the affected components</strong> get updated.
+	The <strong>useGlobalStateBatch()</strong> hook is used. See console log for details.
 </>;
 
 type FormState = Record<string, string>;
@@ -26,11 +27,28 @@ const ChildComponent = (props: {
 	const [formValues, setFormValues] = useGlobalState<FormState>({
 		fullQualifiedName: "form_values",
 		defaultValue: DEFAULT_FORM_STATE,
-		subscribedState: { thisState: "always" },
+		subscribedState: {
+			thisState: {
+				condition: ({ oldState, newState }) => {
+					const result = fieldNames.some(t => oldState?.[t] !== newState[t]);
+
+					logInfo(
+						`[${scope}]: updateFilter -> ${result}`,
+						{ fieldNames, oldState, newState, result },
+						REACT_SIMPLE_STATE.LOGGING.logLevel);
+					
+					return result;
+				}
+			}
+		},
 		subscriberId: scope
 	});
 
-	logInfo(`[${scope}]: render`, { props, formValues }, REACT_SIMPLE_STATE.LOGGING.logLevel);
+	logInfo(
+		`[${scope}]: render`,
+		{ props, formValues },
+		REACT_SIMPLE_STATE.LOGGING.logLevel
+	);
 
 	return (
 		<Stack>
@@ -45,7 +63,7 @@ const ChildComponent = (props: {
 						id={fieldName}
 						name={fieldName}
 						value={formValues[fieldName] || ""} // controlled input
-						onChange={evt => setFormValues({ [fieldName]: evt.target.value })}
+						onChange={evt => setFormValues({ [fieldName]: evt.target.value })} // it's important that we only pass the values changed
 					/>
 				</Cluster>
 			))}
@@ -56,18 +74,17 @@ const ChildComponent = (props: {
 const Summary = () => {
 	const scope = "Summary";
 
-	// get this component updated if anything changes in global state
-	const [globalState] = useGlobalState<{ form_values: FormState }>({
-		fullQualifiedName: "", // root
-		defaultValue: { form_values: {} },
+	const [{formValues,globalState}] = useGlobalStateBatch({
+		fullQualifiedNames: {
+			formValues: "form_values",
+			globalState: ""
+		},
 		subscriberId: scope
 	});
 
-	const formValues = globalState.form_values;
-
 	logInfo(
 		`[${scope}]: render`,
-		{ formValues, globalState, subscriptions: REACT_SIMPLE_STATE.ROOT_STATE.subscriptions },
+		{ formValues, globalState },
 		REACT_SIMPLE_STATE.LOGGING.logLevel
 	);
 
@@ -113,11 +130,8 @@ const Component = (props: ComponentProps) => {
 				<input type="button" value="Reset state" style={{ padding: "0.5em 1em" }}
 					onClick={() => initGlobalState("form_values", DEFAULT_FORM_STATE)} />
 
-				<input type="button" value="Trace Global State" style={{ padding: "0.5em 1em" }}
-					onClick={() => console.log("STATE", getGlobalStateOrEmpty(""))} />
-
-				<input type="button" value="Trace subscriptions" style={{ padding: "0.5em 1em" }}
-					onClick={() => console.log("SUBSCRIPTIONS", REACT_SIMPLE_STATE.ROOT_STATE.subscriptions)} />
+				<input type="button" value="Trace GLOBAL_STATE" style={{ padding: "0.5em 1em" }}
+					onClick={() => console.log("GLOBAL_STATE", getGlobalState("", {}))} />
 			</Cluster>
 
 			<ChildComponent title="Component 1" fieldNames={["field_a", "field_b"]} />

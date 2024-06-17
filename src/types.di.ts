@@ -4,7 +4,7 @@ import {
 	GlobalStateChangeArgs, GlobalStateChangeFilter, GlobalStateChangeFilters, GlobalStateSubscription, GlobalStateSubscriptionsEntry
 	
  } from "subscription/types";
-import { GlobalStateRoot, SetStateOptions } from "types";
+import { GlobalStateRoot, RemoveStateOptions, SetStateOptions } from "types";
 
 export interface ReactSimpleStateDependencyInjection {
 	subscription: {
@@ -31,7 +31,7 @@ export interface ReactSimpleStateDependencyInjection {
 
 		unsubscribeFromGlobalState: (
 			uniqueId: Guid,
-			stateFullQualifiedName: string,
+			fullQualifiedName: string,
 			globalStateRoot: GlobalStateRoot<unknown>,
 			defaultImpl: ReactSimpleStateDependencyInjection["subscription"]["unsubscribeFromGlobalState"]
 		) => void;
@@ -52,20 +52,20 @@ export interface ReactSimpleStateDependencyInjection {
 
 	globalState: {
 		getGlobalState: <State>(
-			stateFullQualifiedName: string, // full qualified child path
+			fullQualifiedName: string, // full qualified child path
 			defaultValue: ValueOrCallback<State>,
 			globalStateRoot: GlobalStateRoot<unknown>,
 			defaultImpl: ReactSimpleStateDependencyInjection["globalState"]["getGlobalState"]
 		) => State;
 
 		getGlobalStateOrEmpty: <State>(
-			stateFullQualifiedName: string, // full qualified child path
+			fullQualifiedName: string, // full qualified child path
 			globalStateRoot: GlobalStateRoot<unknown>,
 			defaultImpl: ReactSimpleStateDependencyInjection["globalState"]["getGlobalStateOrEmpty"]
 		) => State | undefined;
 
 		setGlobalState: <State>(
-			stateFullQualifiedName: string, // full qualified child path
+			fullQualifiedName: string, // full qualified child path
 			state: ValueOrCallbackWithArgs<State | undefined, State>,
 			options: SetStateOptions<State>,
 			globalStateRoot: GlobalStateRoot<unknown>,
@@ -73,7 +73,7 @@ export interface ReactSimpleStateDependencyInjection {
 		) => State;
 
 		initGlobalState: <State>(
-			stateFullQualifiedName: string, // full qualified child path
+			fullQualifiedName: string, // full qualified child path
 			state: ValueOrCallback<State>,
 			options: Omit<SetStateOptions<State>, "customMerge">,
 			globalStateRoot: GlobalStateRoot<unknown>,
@@ -82,6 +82,7 @@ export interface ReactSimpleStateDependencyInjection {
 
 		removeGlobalState: (
 			statePaths: string | string[], // full qualified child path
+			options: RemoveStateOptions,
 			globalStateRoot: GlobalStateRoot<unknown>,
 			defaultImpl: ReactSimpleStateDependencyInjection["globalState"]["removeGlobalState"]
 		) => void;

@@ -3,8 +3,8 @@ import { GlobalStateChangeFilters, GlobalStateSubscriptionsEntry } from "subscri
 import { ReactSimpleStateDependencyInjection } from "types.di";
 
 export interface GlobalStateRoot<State> {
-	// recursive object stateFullQualifiedName is passed to getChildMemberValue() from react-simple-mapping as full qualified child name
-	state: object;
+	// recursive object fullQualifiedName is passed to getChildMemberValue() from react-simple-mapping as full qualified child name
+	state: State;
 	subscriptions: GlobalStateSubscriptionsEntry<State>;
 }
 
@@ -40,4 +40,9 @@ export interface InitStateOptions<State> {
 
 export interface SetStateOptions<State> extends InitStateOptions<State>  {
 	readonly mergeState?: (oldState: State, newState: Partial<State>) => State;
+}
+
+export interface RemoveStateOptions {
+	readonly removeSubscriptions?: boolean;
+	readonly removeEmptyParents?: boolean;
 }

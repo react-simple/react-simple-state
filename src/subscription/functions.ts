@@ -120,10 +120,10 @@ export const subscribeToGlobalState = <State>(
 
 const unsubscribeFromGlobalState_default = (
   uniqueId: Guid,
-  stateFullQualifiedName: string,
+  fullQualifiedName: string,
   globalStateRoot: GlobalStateRoot<unknown>
 ) => {
-  const subs = getGlobalStateSubscriptions(stateFullQualifiedName, false, globalStateRoot);
+  const subs = getGlobalStateSubscriptions(fullQualifiedName, false, globalStateRoot);
 
   if (subs) {
     delete subs.subscriptions[uniqueId];
@@ -134,12 +134,12 @@ REACT_SIMPLE_STATE.DI.subscription.unsubscribeFromGlobalState = unsubscribeFromG
 
 export const unsubscribeFromGlobalState = (
   uniqueId: Guid,
-  stateFullQualifiedName: string,
+  fullQualifiedName: string,
   globalStateRoot?: GlobalStateRoot<unknown>
 ) => {
   return REACT_SIMPLE_STATE.DI.subscription.unsubscribeFromGlobalState(
     uniqueId,
-    stateFullQualifiedName,
+    fullQualifiedName,
     globalStateRoot || REACT_SIMPLE_STATE.ROOT_STATE,
     unsubscribeFromGlobalState_default
   );
@@ -179,18 +179,18 @@ const updateSubscribedGlobalStateComponents_default = <State>(
   options: SetStateOptions<State>,
   globalStateRoot: GlobalStateRoot<unknown>
 ) => {
-  const { stateFullQualifiedName } = changeArgs;
+  const { fullQualifiedName } = changeArgs;
   const updateState = {
     ...REACT_SIMPLE_STATE.DEFAULTS.changeFilters.defaultUpdateFilters,
     ...options?.updateState
   };
 
   logTrace(log => log(
-    `[globalStateUpdateSubscribedComponents] stateFullQualifiedName=${stateFullQualifiedName}`,
-    { stateFullQualifiedName, changeArgs, options, updateState }
+    `[globalStateUpdateSubscribedComponents] fullQualifiedName=${fullQualifiedName}`,
+    { fullQualifiedName, changeArgs, options, updateState }
   ), null, REACT_SIMPLE_STATE.LOGGING.logLevel);
 
-  const thisSubs = getGlobalStateSubscriptions<State>(stateFullQualifiedName, false, globalStateRoot);
+  const thisSubs = getGlobalStateSubscriptions<State>(fullQualifiedName, false, globalStateRoot);
 
   // this state
   if (thisSubs && updateState.thisState && evaluateGlobalStateComponentChangeTrigger(updateState.thisState, changeArgs)) {
@@ -221,9 +221,9 @@ const updateSubscribedGlobalStateComponents_default = <State>(
 
   // parents
   if (updateState.parentState && evaluateGlobalStateComponentChangeTrigger(updateState.parentState, changeArgs)) {
-    const fullQualifiedNameParts = splitFullQualifiedName(stateFullQualifiedName);
+    const fullQualifiedNameParts = splitFullQualifiedName(fullQualifiedName);
     const parentSubsPerLevel: GlobalStateSubscriptionsEntry<unknown>[] = []; // paths to all parents
-    let node = globalStateRoot.subscriptions;
+    let node = globalStateRoot.subscriptions as GlobalStateSubscriptionsEntry<unknown>;
     
     for (const part of fullQualifiedNameParts) {
       parentSubsPerLevel.push(node);

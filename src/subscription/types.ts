@@ -1,7 +1,7 @@
-import { Guid, ObjectCompareOptions } from "@react-simple/react-simple-util";
+import { Guid } from "@react-simple/react-simple-util";
 
 export interface GlobalStateChangeArgs<State> {
-	stateFullQualifiedName: string;
+	fullQualifiedName: string;
 	oldState: State | undefined; // during initialization by default value, we have no previous state
 	newState: State;
 }
