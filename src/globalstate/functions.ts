@@ -66,8 +66,6 @@ export function getGlobalState<State>(
 const setGlobalState_default = <State>(
 	fullQualifiedName: string,
 	state: ValueOrCallbackWithArgs<State | undefined, State>,
-
-	// update this state and child states by default
 	options: SetStateOptions<State>,
 	globalStateRoot: GlobalStateRoot<unknown>
 ) => {
@@ -104,7 +102,6 @@ REACT_SIMPLE_STATE.DI.globalState.setGlobalState = setGlobalState_default;
 export const setGlobalState = <State>(
 	fullQualifiedName: string,
 	state: ValueOrCallbackWithArgs<State | undefined, State>,
-	// update this state and child states by default
 	options?: SetStateOptions<State>,
 	globalStateRoot?: GlobalStateRoot<unknown>
 ) => {
@@ -127,7 +124,6 @@ export const setGlobalState = <State>(
 const initGlobalState_default = <State>(
 	fullQualifiedName: string,
 	state: ValueOrCallback<State>,
-	// update this state and child states by default
 	options: InitStateOptions<State>,
 	globalStateRoot: GlobalStateRoot<unknown>
 ) => {
@@ -158,7 +154,6 @@ REACT_SIMPLE_STATE.DI.globalState.initGlobalState = initGlobalState_default;
 export const initGlobalState = <State>(
 	fullQualifiedName: string,
 	state: ValueOrCallback<State>,
-	// update this state and child states by default
 	options?: InitStateOptions<State>,
 	globalStateRoot?: GlobalStateRoot<unknown>
 ) => {

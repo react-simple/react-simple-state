@@ -26,7 +26,6 @@ const ChildComponent = (props: {
 	const [formValues, setFormValues] = useGlobalState<FormState>({
 		fullQualifiedName: "form_values",
 		defaultValue: DEFAULT_FORM_STATE,
-		subscribedState: { thisState: "always" },
 		subscriberId: scope
 	});
 
@@ -74,10 +73,7 @@ const Summary = () => {
 	return (
 		<Stack>
 			<h2>Summary</h2>
-			<ObjectRenderer obj={{
-				formValues,
-				globalState
-			}} />
+			<ObjectRenderer obj={{ formValues, globalState }} />
 		</Stack>
 	);
 };
@@ -113,11 +109,11 @@ const Component = (props: ComponentProps) => {
 				<input type="button" value="Reset state" style={{ padding: "0.5em 1em" }}
 					onClick={() => initGlobalState("form_values", DEFAULT_FORM_STATE)} />
 
-				<input type="button" value="Trace Global State" style={{ padding: "0.5em 1em" }}
-					onClick={() => console.log("STATE", getGlobalStateOrEmpty(""))} />
+				<input type="button" value="Trace root state" style={{ padding: "0.5em 1em" }}
+					onClick={() => console.log("state", getGlobalStateOrEmpty(""))} />
 
 				<input type="button" value="Trace subscriptions" style={{ padding: "0.5em 1em" }}
-					onClick={() => console.log("SUBSCRIPTIONS", REACT_SIMPLE_STATE.ROOT_STATE.subscriptions)} />
+					onClick={() => console.log("subscriptions", REACT_SIMPLE_STATE.ROOT_STATE.subscriptions)} />
 			</Cluster>
 
 			<ChildComponent title="Component 1" fieldNames={["field_a", "field_b"]} />

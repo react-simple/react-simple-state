@@ -91,10 +91,7 @@ const Summary = () => {
 	return (
 		<Stack>
 			<h2>Summary</h2>
-			<ObjectRenderer obj={{
-				formValues,
-				globalState
-			}} />
+			<ObjectRenderer obj={{ formValues, globalState }} />
 		</Stack>
 	);
 };
@@ -130,8 +127,11 @@ const Component = (props: ComponentProps) => {
 				<input type="button" value="Reset state" style={{ padding: "0.5em 1em" }}
 					onClick={() => initGlobalState("form_values", DEFAULT_FORM_STATE)} />
 
-				<input type="button" value="Trace GLOBAL_STATE" style={{ padding: "0.5em 1em" }}
-					onClick={() => console.log("GLOBAL_STATE", getGlobalState("", {}))} />
+				<input type="button" value="Trace root state" style={{ padding: "0.5em 1em" }}
+					onClick={() => console.log("state", getGlobalState("", {}))} />
+				
+				<input type="button" value="Trace subscriptions" style={{ padding: "0.5em 1em" }}
+					onClick={() => console.log("subscriptions", REACT_SIMPLE_STATE.ROOT_STATE.subscriptions)} />
 			</Cluster>
 
 			<ChildComponent title="Component 1" fieldNames={["field_a", "field_b"]} />

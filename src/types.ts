@@ -1,4 +1,5 @@
 import { LogLevel, ValueOrCallbackWithArgs } from "@react-simple/react-simple-util";
+import { GlobalStateContextData } from "globalstate/context/types";
 import { GlobalStateChangeFilters, GlobalStateSubscriptionsEntry } from "subscription/types";
 import { ReactSimpleStateDependencyInjection } from "types.di";
 
@@ -14,7 +15,7 @@ export interface ReactSimpleState {
 	};
 
 	ROOT_STATE: GlobalStateRoot<unknown>;
-	DI: ReactSimpleStateDependencyInjection;
+	CONTEXTS: { [contextId: string]: GlobalStateContextData };
 
 	readonly DEFAULTS: {
 		changeFilters: {
@@ -23,7 +24,9 @@ export interface ReactSimpleState {
 			defaultSubscribeFilters: GlobalStateChangeFilters<unknown>; // default for subscribeToChanges when using useGlobalState()
 			defaultUpdateFilters: GlobalStateChangeFilters<unknown>; // default for updateStates when using setGlobalState()
 		};
-	}
+	};
+
+	DI: ReactSimpleStateDependencyInjection;
 }
 
 export type StateSetter<State> = (

@@ -11,8 +11,8 @@ export interface GlobalStateConditionalChangeFilter<State> {
 }
 
 export type GlobalStateChangeFilter<State> =
-	| "always"
-	| "never"
+	| true // always
+	| false // never
 	| GlobalStateConditionalChangeFilter<State>;
 
 // Instead of a flat list we build a hieararchy of subscriptions following the full qualified path 
@@ -38,7 +38,7 @@ export interface GlobalStateSubscription<State> {
 // default is REACT_SIMPLE_STATE.DEFAULTS.changeFilters.defaultUpdateFilters for initGlobalState() and setGlobalState() and
 // REACT_SIMPLE_STATE.DEFAULTS.changeFilters.defaultSubscribeFilters for subscribeToGlobalState() or useGlobalState()
 export interface GlobalStateChangeFilters<State> {
-	readonly thisState?: GlobalStateChangeFilter<State>; // required, but if not, then default is "always"
-	readonly parentState?: GlobalStateChangeFilter<State>; // default is "never" when updating and "always" when subscribing
+	readonly thisState?: GlobalStateChangeFilter<State>; // required, but if not, then default is 'true' meaning "always"
+	readonly parentState?: GlobalStateChangeFilter<State>; // default is 'false' meaning "never" when updating and "always" when subscribing
 	readonly childState?: GlobalStateChangeFilter<State>; // default is "always" when updating and "never" when subscribing
 }

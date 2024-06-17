@@ -9,7 +9,7 @@ it('initGlobalState.rootState', () => {
   // clear global state
   resetGlobalState();
   const copy = deepCopyObject(TEST_DATA);
-  initGlobalState("", TEST_DATA, {});
+  initGlobalState("", TEST_DATA);
 
   expect(sameObjects(REACT_SIMPLE_STATE.ROOT_STATE.state, TEST_DATA)).toBe(true);
 
@@ -21,7 +21,7 @@ it('initGlobalState.rootState', () => {
 it('initGlobalState.childState.value', () => {
   // clear global state
   resetGlobalState();
-  initGlobalState("a.b.c", 2, {});
+  initGlobalState("a.b.c", 2);
 
   const value = (REACT_SIMPLE_STATE.ROOT_STATE.state as typeof TEST_DATA)?.a?.b?.c;
   expect(value).toBe(2);
@@ -44,7 +44,7 @@ it('initGlobalState.childState.update.thisState', () => {
   });
 
   subscribeToGlobalState(uniqueId, { fullQualifiedName: "a.b.c", onUpdate });
-  initGlobalState("a.b.c", 2, {});
+  initGlobalState("a.b.c", 2);
 
   expect(onUpdate).toHaveBeenCalledTimes(1);
 
@@ -66,7 +66,11 @@ it('initGlobalState.childState.update.parentState.notCalled', () => {
   const onUpdate = jest.fn(t => { args = t; });
 
   subscribeToGlobalState(uniqueId, { fullQualifiedName: "a", onUpdate });
-  initGlobalState("a.b.c", 2, {});
+  initGlobalState("a.b.c", 2, {
+    updateState: {
+      parentState: "never"
+    }
+  });
 
   expect(onUpdate).toHaveBeenCalledTimes(0);
 });
@@ -85,17 +89,8 @@ it('initGlobalState.childState.update.parentState.called', () => {
     triggerPath = t2;
   });
 
-  // by default we don't subscribe to child state changes, so we have to manually override
-  subscribeToGlobalState(uniqueId, {
-    fullQualifiedName: "a",    
-    subscribedState: { childState: "always" }, 
-    onUpdate
-  });
-
-  // by default we don't notify components subscribed to parent state, so we have to manually override
-  initGlobalState("a.b.c", 2, {
-    updateState: { parentState: "always" } 
-  });
+  subscribeToGlobalState(uniqueId, { fullQualifiedName: "a", onUpdate });
+  initGlobalState("a.b.c", 2);
 
   expect(onUpdate).toHaveBeenCalledTimes(1);
 
@@ -121,9 +116,8 @@ it('initGlobalState.childState.update.childState.called', () => {
     triggerPath = t2;
   });
 
-  // by default components subscribed to child states are updated
   subscribeToGlobalState(uniqueId, { fullQualifiedName: "a.b.c", onUpdate });
-  initGlobalState("a.b", { c: 2 }, {});
+  initGlobalState("a.b", { c: 2 });
 
   expect(onUpdate).toHaveBeenCalledTimes(1);
 
@@ -146,8 +140,8 @@ it('initGlobalState.childState.update.childState.called.conditional.triggerPath'
   // without condition it's called twice
   subscribeToGlobalState(uniqueId, { fullQualifiedName: "a.b.c", onUpdate: onUpdate2 });
 
-  initGlobalState("a", { b: { c: 2 } }, {});
-  initGlobalState("a.b", { c: 3 }, {});
+  initGlobalState("a", { b: { c: 2 } });
+  initGlobalState("a.b", { c: 3 });
 
   expect(onUpdate2).toHaveBeenCalledTimes(2);
 
@@ -162,8 +156,8 @@ it('initGlobalState.childState.update.childState.called.conditional.triggerPath'
     onUpdate: onUpdate1
   });
 
-  initGlobalState("a", { b: { c: 2 } }, {});
-  initGlobalState("a.b", { c: 3 }, {});
+  initGlobalState("a", { b: { c: 2 } });
+  initGlobalState("a.b", { c: 3 });
 
   expect(onUpdate1).toHaveBeenCalledTimes(1);
 });
@@ -178,8 +172,8 @@ it('initGlobalState.childState.update.childState.called.conditional.value', () =
   // without condition it's called twice
   subscribeToGlobalState(uniqueId, { fullQualifiedName: "a.b.c", onUpdate: onUpdate2 });
 
-  initGlobalState("a", { b: { c: 2 } }, {});
-  initGlobalState("a.b", { c: 3 }, {});
+  initGlobalState("a", { b: { c: 2 } });
+  initGlobalState("a.b", { c: 3 });
 
   expect(onUpdate2).toHaveBeenCalledTimes(2);
 
@@ -194,8 +188,8 @@ it('initGlobalState.childState.update.childState.called.conditional.value', () =
     onUpdate: onUpdate1
   });
 
-  initGlobalState("a", { b: { c: 2 } }, {});
-  initGlobalState("a.b", { c: 3 }, {});
+  initGlobalState("a", { b: { c: 2 } });
+  initGlobalState("a.b", { c: 3 });
 
   expect(onUpdate1).toHaveBeenCalledTimes(1);
 });

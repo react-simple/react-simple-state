@@ -149,10 +149,10 @@ function evaluateGlobalStateComponentChangeTrigger_default<State>(
   trigger: GlobalStateChangeFilter<State>,
   changeArgs: GlobalStateChangeArgs<State>
 ): boolean {
-  if (trigger === "always") {
+  if (trigger === true) {
     return true;
   }
-  else if (trigger === "never") {
+  else if (trigger === false) {
     return false;
   }
   else if ((trigger as GlobalStateConditionalChangeFilter<State>).condition) {

@@ -9,7 +9,7 @@ it('setGlobalState.rootState', () => {
   // clear global state
   resetGlobalState();
   const copy = deepCopyObject(TEST_DATA);
-  setGlobalState("", TEST_DATA, {});
+  setGlobalState("", TEST_DATA);
 
   expect(sameObjects(REACT_SIMPLE_STATE.ROOT_STATE.state, TEST_DATA)).toBe(true);
 
@@ -21,7 +21,7 @@ it('setGlobalState.rootState', () => {
 it('setGlobalState.childState.value', () => {
   // clear global state
   resetGlobalState();
-  setGlobalState("a.b.c", 2, {});
+  setGlobalState("a.b.c", 2);
 
   const value = (REACT_SIMPLE_STATE.ROOT_STATE.state as typeof TEST_DATA)?.a?.b?.c;
   expect(value).toBe(2);
@@ -44,7 +44,7 @@ it('setGlobalState.childState.update.thisState', () => {
   });
 
   subscribeToGlobalState(uniqueId, { fullQualifiedName: "a.b.c", onUpdate });
-  setGlobalState("a.b.c", 2, {});
+  setGlobalState("a.b.c", 2);
 
   expect(onUpdate).toHaveBeenCalledTimes(1);
   
@@ -65,8 +65,13 @@ it('setGlobalState.childState.update.parentState.notCalled', () => {
   let args: GlobalStateChangeArgs | undefined;
   const onUpdate = jest.fn(t => { args = t; });
 
-  subscribeToGlobalState(uniqueId, { fullQualifiedName: "a", onUpdate });
-  setGlobalState("a.b.c", 2, {});
+  subscribeToGlobalState(uniqueId, {
+    fullQualifiedName: "a",
+    subscribedState: REACT_SIMPLE_STATE.DEFAULTS.changeFilters.never,
+    onUpdate
+  });
+
+  setGlobalState("a.b.c", 2);
 
   expect(onUpdate).toHaveBeenCalledTimes(0);
 });
@@ -85,17 +90,8 @@ it('setGlobalState.childState.update.parentState.called', () => {
     triggerPath = t2;
   });
 
-  // by default we don't subscribe to child state changes, so we have to manually override
-  subscribeToGlobalState(uniqueId, {
-    fullQualifiedName: "a",    
-    subscribedState: { childState: "always" }, 
-    onUpdate
-  });
-
-  // by default we don't notify components subscribed to parent state, so we have to manually override
-  setGlobalState("a.b.c", 2, {
-    updateState: { parentState: "always" } 
-  });
+  subscribeToGlobalState(uniqueId, { fullQualifiedName: "a", onUpdate });
+  setGlobalState("a.b.c", 2);
 
   expect(onUpdate).toHaveBeenCalledTimes(1);
 
@@ -121,9 +117,8 @@ it('setGlobalState.childState.update.childState.called', () => {
     triggerPath = t2;
   });
 
-  // by default components subscribed to child states are updated
   subscribeToGlobalState(uniqueId, { fullQualifiedName: "a.b.c", onUpdate });
-  setGlobalState("a.b", { c: 2 }, {});
+  setGlobalState("a.b", { c: 2 });
 
   expect(onUpdate).toHaveBeenCalledTimes(1);
 
@@ -146,8 +141,8 @@ it('setGlobalState.childState.update.childState.called.conditional.triggerPath',
   // without condition it's called twice
   subscribeToGlobalState(uniqueId, { fullQualifiedName: "a.b.c", onUpdate: onUpdate2 });
 
-  setGlobalState("a", { b: { c: 2 } }, {});
-  setGlobalState("a.b", { c: 3 }, {});
+  setGlobalState("a", { b: { c: 2 } });
+  setGlobalState("a.b", { c: 3 });
 
   expect(onUpdate2).toHaveBeenCalledTimes(2);
 
@@ -162,8 +157,8 @@ it('setGlobalState.childState.update.childState.called.conditional.triggerPath',
     onUpdate: onUpdate1
   });
 
-  setGlobalState("a", { b: { c: 2 } }, {});
-  setGlobalState("a.b", { c: 3 }, {});
+  setGlobalState("a", { b: { c: 2 } });
+  setGlobalState("a.b", { c: 3 });
 
   expect(onUpdate1).toHaveBeenCalledTimes(1);
 });
@@ -178,8 +173,8 @@ it('setGlobalState.childState.update.childState.called.conditional.value', () =>
   // without condition it's called twice
   subscribeToGlobalState(uniqueId, { fullQualifiedName: "a.b.c", onUpdate: onUpdate2 });
 
-  setGlobalState("a", { b: { c: 2 } }, {});
-  setGlobalState("a.b", { c: 3 }, {});
+  setGlobalState("a", { b: { c: 2 } });
+  setGlobalState("a.b", { c: 3 });
 
   expect(onUpdate2).toHaveBeenCalledTimes(2);
 
@@ -194,8 +189,8 @@ it('setGlobalState.childState.update.childState.called.conditional.value', () =>
     onUpdate: onUpdate1
   });
 
-  setGlobalState("a", { b: { c: 2 } }, {});
-  setGlobalState("a.b", { c: 3 }, {});
+  setGlobalState("a", { b: { c: 2 } });
+  setGlobalState("a.b", { c: 3 });
 
   expect(onUpdate1).toHaveBeenCalledTimes(1);
 });

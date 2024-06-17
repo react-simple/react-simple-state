@@ -3,9 +3,9 @@ This library provides React global and context level state management hooks. The
 
 Features:
 - The primary **useGlobalState()** hook works like the React **useState()** hook except that the **state is stored globally** and can be shared between components.
-	- The ***stateKey*** argument is used to separate state entries and to update components only subscribed to a particular state key when state changes.
+	- The ***fullQualifiedName*** argument is used to separate state entries and to update components only subscribed to a particular state key when state changes.
 	- Components can further **filter state changes** they react to by specifying the **updateFilter** argument:
-		- *true* for to get all updates with the same *stateKey*
+		- *true* for to get all updates with the same *fullQualifiedName*
 		- *false* for to get no updates at all and
 		- a callback function with (*newState, oldState, setStateArgs*) arguments to dynamiclly decide if the component should be updated or not when state changes.
 - The **useContextState()** hook can be used to access context-level state in the DOM.
@@ -47,7 +47,7 @@ The custom callback will be called with all parameters and the default implement
 # Content
 
 ## Types
-- **StateChangeArgs&lt;State&gt;**: Parameter type used in callbacks related to state changes with (*stateKey*, *oldState*, *newState*)
+- **StateChangeArgs&lt;State&gt;**: Parameter type used in callbacks related to state changes with (*fullQualifiedName*, *oldState*, *newState*)
 - **StateChangeSubscriptions&lt;StateChangeArgs&gt;**: Subscription records for state entries used internally to notify/update subscribed components on state changes
 - **StateEntry&lt;State, StateChangeArgs&gt;**: State entry used in global-state and context-state containing the state and the list of subscribed components
 to get updated on state changes.
@@ -58,7 +58,7 @@ to get updated on state changes.
 ## Global State
 
 Global state works like React component state	except that the state is stored globally and can be shared between components.
-The **stateKey** argument is used to separate state entries and to update components subscribed only to a particular key when state changes.
+The **statfullQualifiedNameeKey** argument is used to separate state entries and to update components subscribed only to a particular key when state changes.
 
 ### Types
 
@@ -69,19 +69,19 @@ which means that the subscribed component will get updated on any global-state c
 
 State can be read and written using functions instead of hooks. However, unlike hooks, functions won't provide subscription therefore calling components won't get updated when state changes so the DOM cannot react. However, using these functions in event handlers (is perfectly safe since when the event is fired the actual state will be read.
 
-- **getGlobalState&lt;State&gt;(*stateKey, defaultValue*)**:
-	- Returns state value from global-state by ***stateKey***.
+- **getGlobalState&lt;State&gt;(*fullQualifiedName, defaultValue*)**:
+	- Returns state value from global-state by ***fullQualifiedName***.
 	- It always returns the current state or the default state.
 	- This function can be used in event handlers or in components which do not need to be updated on state changes therefore using the **useGlobalState()** hook would just generate unnecessary updates.
 
-- **setGlobalState&lt;State&gt;(*stateKey, state, defaultValue, customMerge*)**:
-	- Sets the state entry in global-state by ***stateKey*** and will update all subscribed components.
+- **setGlobalState&lt;State&gt;(*fullQualifiedName, state, defaultValue, customMerge*)**:
+	- Sets the state entry in global-state by ***fullQualifiedName*** and will update all subscribed components.
 	- This function can be used in event handlers or in components which do not need to be updated on state changes therefore using the **useGlobalState()** hook would just generate unnecessary updates.
 	- The argument can be a partial state or a callback function returning it, which then will be merged with the current state; *undefined* and *null* members will be skipped.
 	- The merging of the new state with the current state is a *shallow* merge, but a **customMerge()** callback can be provided.
 
-- **initGlobalState&lt;State&gt;(*stateKey, state*)**: 
-	- Initializes the state entry in global-state by ***stateKey*** and will update all subscribed components.
+- **initGlobalState&lt;State&gt;(*fullQualifiedName, state*)**: 
+	- Initializes the state entry in global-state by ***fullQualifiedName*** and will update all subscribed components.
 	- This function can be used in event handlers or in components which do not need to be updated on state changes therefore using the **useGlobalState()** hook would just generate unnecessary updates.
 	- The argument must be a complete state object since no merging will happen, *undefined* and *null* members will be set in state.
 	- This function is to be called from **component initializers**.
@@ -99,22 +99,22 @@ Internal functions are not exported by the package.
 	- Returns the global-state root object (**GlobalState** type) which can be read and modified, however, it is not advised to do so, only for development and testing purposes.
 	- Does not subscribe to state changes as neither of the functions do.
 
-- **getGlobalStateEntry&lt;State&gt;(*stateKey*)**:
-	- Returns a global-state entry by ***stateKey*** as-it-is.
+- **getGlobalStateEntry&lt;State&gt;(*fullQualifiedName*)**:
+	- Returns a global-state entry by ***fullQualifiedName*** as-it-is.
 	- Can be uninitialized and *undefined*.
 	- Contains the list of *subscribers*.
 
-- **getOrCreateGlobalStateEntry&lt;State&gt;(*stateKey, state*)**:
-	- Returns a global-state entry by ***stateKey*** after initialization if needed.
+- **getOrCreateGlobalStateEntry&lt;State&gt;(*fullQualifiedName, state*)**:
+	- Returns a global-state entry by ***fullQualifiedName*** after initialization if needed.
 	- Also registers the entry in the global-state if it was not present.
 	- Contains the list of *subscribers*.
 
 ### Hooks
 
-- **useGlobalState&lt;State&gt;({ *stateKey, updateFilter, defaultValue, subscriberId?, merge?* })**: 
-	- Returns [*state*, *setState()*] result from global-state by ***stateKey***.
+- **useGlobalState&lt;State&gt;({ *fullQualifiedName, updateFilter, defaultValue, subscriberId?, merge?* })**: 
+	- Returns [*state*, *setState()*] result from global-state by ***fullQualifiedName***.
 	- Always returns the current state or the default state.
-	- Subscribes to state changes so when global-state with the same ***stateKey*** changes it will get updated.
+	- Subscribes to state changes so when global-state with the same ***fullQualifiedName*** changes it will get updated.
 	- The parent component will get updated as long as the **updateFilter** argument is *true* or does return *true*.
 	- ***updateFilter*** is either:
 		- *true* to react to all updates
@@ -122,11 +122,11 @@ Internal functions are not exported by the package.
 		- a *callback function* to return *true* or *false* based on the passed (*oldState, newState, setStateArgs*) arguments. 
 		- Example: react to the change of a particular member only by returning *oldState*[*memberName*] !== *newState*[*memberName*].
 	- This hook returns a **setState()** function to update the requested state.
-		- **setState(*state, customMerge*)** is the simplified version of **setGlobalState({ *stateKey, state, defaultValue, customMerge* })**, since it does not require those arguments which were already specified for the hook.
+		- **setState(*state, customMerge*)** is the simplified version of **setGlobalState({ *fullQualifiedName, state, defaultValue, customMerge* })**, since it does not require those arguments which were already specified for the hook.
 		- The merging of the new state with the current state is a *shallow* merge, but a custom merge method can be specified either for the **setState()** call or for the hook.
 
 - **useGlobalStateBatch({ *stateKeys, updateFilter, subscriberId?* })**:
-	- Similar to the **useGlobalState()** hook, but it accepts multiple state keys and returns states in an associative array with **stateKey** keys.
+	- Similar to the **useGlobalState()** hook, but it accepts multiple state keys and returns states in an associative array with **fullQualifiedName** keys.
 	- Subscribes to all state changes for those state keys.
 	- State is always returned as-it-is, there is no initialization with a default value.
 	- It returns the **setGlobalState()** function to set any state.
@@ -139,41 +139,41 @@ Internal functions are not exported by the package.
 ## Context State
 
 Context-state can be used to access context-level state. By default the **root-context** is used, which is global, but using the
-**&lt;StateContext&gt;** component it is possible to define child contexts in the DOM. This is achieved by storing ***contextId*** in **React.context** and using that ***contextId*** and ***stateKey*** to access separate state entries based on the DOM location of the caller component.
+**&lt;StateContext&gt;** component it is possible to define child contexts in the DOM. This is achieved by storing ***contextId*** in **React.context** and using that ***contextId*** and ***fullQualifiedName*** to access separate state entries based on the DOM location of the caller component.
 
 ### Types
 
 - **StateContextData**: Data type for the **&lt;StateContext&gt;** component to define the state contexts in the DOM.
 It only contains the ***contextId***, the actual data is stored in GLOBAL_CONTEXT_STATE.
  
-- **ContextStateChangeArgs&lt;State&gt;**: Parameter type used in callbacks related to context-state changes: (*contextId, stateKey, oldState, newState*)
+- **ContextStateChangeArgs&lt;State&gt;**: Parameter type used in callbacks related to context-state changes: (*contextId, fullQualifiedName, oldState, newState*)
 - **ContextStateEntry&lt;State&gt;**: State entry used in context-state containing the state and the list of subscribed components
 to get updated on state change.
 
 - **ContextState**: State for a context which is either the root-context or a child context with ***contextId*** defined by
 **&lt;StateContext&gt;** component instances. It also contains subscriptions because it's possible to subscribe to context-state changes
-at the context level which means that the subscribed component will get updated on any context-state changes for that context regardless of ***stateKey***.
+at the context level which means that the subscribed component will get updated on any context-state changes for that context regardless of ***fullQualifiedName***.
 
 - **ContextGlobalState**: The root context-state. By using the **useContextStateRoot()** hook it is possible to subscribe to state changes at the root level
-which means that the subscribed component will get updated on any context-state changes regardless of ***contextId*** and ***stateKey***.
+which means that the subscribed component will get updated on any context-state changes regardless of ***contextId*** and ***fullQualifiedName***.
 
 ### Functions
 
 State can be read and written using functions instead of hooks. However, unlike hooks, functions won't provide subscription therefore calling components won't get updated when state changes so the DOM cannot react. However, using these functions in event handlers is perfectly safe since when the event is fired the actual state will be read.
 
-- **getGlobalContextState&lt;State&gt;(*contextId, stateKey, defaultValue*)**:
-	- Returns state value from context-state by ***contextId*** and ***stateKey***.
+- **getGlobalContextState&lt;State&gt;(*contextId, fullQualifiedName, defaultValue*)**:
+	- Returns state value from context-state by ***contextId*** and ***fullQualifiedName***.
 	- It always returns the current state or the default state.
 	- This function can be used in event handlers or in components which do not need to be updated on state changes therefore using the **useContextState()** hook would generate unnecessary updates.
 
-- **setGlobalContextState&lt;State&gt;(*contextId, stateKey, state, defaultValue, customMerge*)**:
-	- Sets the state entry in context-state by ***contextId*** and ***stateKey*** and will update all subscribed components.
+- **setGlobalContextState&lt;State&gt;(*contextId, fullQualifiedName, state, defaultValue, customMerge*)**:
+	- Sets the state entry in context-state by ***contextId*** and ***fullQualifiedName*** and will update all subscribed components.
 	- This function can be used in event handlers or in components which do not need to be updated on state changes therefore using the **useGlobalState()** hook would generate unnecessary updates.
 	- The argument can be a partial state (or a callback function returning it), which then will be merged with the current state; *undefined* and *null* members will be skipped.
 	- The merging of the new state with the current state is a *shallow* merge, but a **customMerge()** callback can be provided.
 
-- **initGlobalContextState&lt;State&gt;(*contextId, stateKey, state*)**:
-	- Initializes the state entry in context-state by ***contextId*** and ***stateKey*** and will update all subscribed components.
+- **initGlobalContextState&lt;State&gt;(*contextId, fullQualifiedName, state*)**:
+	- Initializes the state entry in context-state by ***contextId*** and ***fullQualifiedName*** and will update all subscribed components.
 	- This function can be used in event handlers or in components which do not need to be updated on state changes therefore using the **useContextState()** hook would generate unnecessary updates.
 	- The argument must be a complete state object since no marging will happen, *undefined* and *null* members will be set in state.
 	- This function is to be called from **component initializers**.
@@ -201,35 +201,35 @@ Internal functions are not exported by the package.
 	- Also registers the entry in the context-state.
 	- It contains the list of *subscribers* and the list of *state entries* by state key underneath the context.
 
-- **getGlobalContextStateEntry&lt;State&gt;(*contextId, stateKey*)**: 
-	- Returns a context-state entry by ***contextId*** and ***stateKey*** as-it-is.
+- **getGlobalContextStateEntry&lt;State&gt;(*contextId, fullQualifiedName*)**: 
+	- Returns a context-state entry by ***contextId*** and ***fullQualifiedName*** as-it-is.
 	- Can be uninitialized and undefined.
 	- It contains the list of *subscribers* too.
 
-- **getOrCreateGlobalContextStateEntry&lt;State&gt;(*contextId, stateKey*)**:
-	- Returns a context-state entry by ***contextId*** and ***stateKey***
+- **getOrCreateGlobalContextStateEntry&lt;State&gt;(*contextId, fullQualifiedName*)**:
+	- Returns a context-state entry by ***contextId*** and ***fullQualifiedName***
 after initialization, if needed.
 	- Also registers the entry in the global-state.
 	- It contains the list of *subscribers* too.
 
 ### Hooks
 
-- **useContextState&lt;State&gt;({ *stateKey, updateFilter, defaultValue, contextId?, merge?* })**:
-	- Returns [*state*, *setState()*] value from context-state by ***contextId*** and ***stateKey***. 
+- **useContextState&lt;State&gt;({ *fullQualifiedName, updateFilter, defaultValue, contextId?, merge?* })**:
+	- Returns [*state*, *setState()*] value from context-state by ***contextId*** and ***fullQualifiedName***. 
 	- ***contextId*** is optional and if is not specified then it will be automatically picked up from the closest **&lt;SectionContext&gt;** component in DOM hierarchy. (The parent context in which the current component is placed.) If there is no such context then root-context is used.
 	- Always returns the current state or the default state.
-	- Subscribes to state changes so when context-state with the same ***contextId*** and ***stateKey*** gets updated the parent component will get updated too as long as ***updateFilter*** is *true* or returns *true*.
+	- Subscribes to state changes so when context-state with the same ***contextId*** and ***fullQualifiedName*** gets updated the parent component will get updated too as long as ***updateFilter*** is *true* or returns *true*.
 	- ***updateFilter*** is either:
 		- *true* to react to all updates
 		- *false* to react to no updates or
 		- a *callback function* to return *true* or *false* based on the passed (*oldState, newState, setStateArgs*) arguments.
 		- Example: it can react to the change of a particular member only by returning *oldState*[*memberName*] !== *newState*[*memberName*].
 	- The hook returns a **setState()** function to update the requested state.
-		- The **setState(*value, customMerge*)** function is the simplified version of **setGlobalContextState({ *contextId, stateKey, state, defaultValue, customMerge* })**, since it does not require those arguments which are already specified for the hook.
+		- The **setState(*value, customMerge*)** function is the simplified version of **setGlobalContextState({ *contextId, fullQualifiedName, state, defaultValue, customMerge* })**, since it does not require those arguments which are already specified for the hook.
 		- The merging of the new state with the current state is a *shallow* merge, but a custom merge method can be specified either for the **setState()** call or for the hook.
 
 - **useContextStateBatch({ *contextIds, stateKeys?, updateFilter, subscriberId?* })**:
-	- Similar to the **useContextState()** hook, but it accepts multiple context ids and state keys and returns states in an associative array with ***contextId*** and ***stateKey*** keys. 
+	- Similar to the **useContextState()** hook, but it accepts multiple context ids and state keys and returns states in an associative array with ***contextId*** and ***fullQualifiedName*** keys. 
 	- Subscribes to all state changes for those state keys. 
 	- State is always returned as-it-is, there is no initialization with a default value.
 	- It returns the **setGlobalContextState()** function to set any state.
