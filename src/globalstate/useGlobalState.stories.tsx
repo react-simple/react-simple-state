@@ -54,9 +54,9 @@ const Summary = () => {
 	const scope = "Summary";
 
 	// get this component updated if anything changes in global state
-	const [globalState] = useGlobalState({
+	const [globalState] = useGlobalState<{ form_values: FormState }>({
 		fullQualifiedName: "", // root
-		defaultValue: {},
+		defaultValue: { form_values: {} },
 		subscriberId: scope
 	});
 
@@ -67,7 +67,7 @@ const Summary = () => {
 	// 	subscriberId: scope
 	// });
 
-	const formValues = (globalState as any)["form_values"];
+	const formValues = globalState.form_values;
 
 	logInfo(
 		`[${scope}]: render`,

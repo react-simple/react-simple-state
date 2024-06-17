@@ -8,38 +8,38 @@ import { GlobalStateRoot, SetStateOptions } from "types";
 
 export interface ReactSimpleStateDependencyInjection {
 	subscription: {
-		getGlobalStateSubscriptionsMemberInfo: (
+		getGlobalStateSubscriptionsMemberInfo: <State>(
 			fullQualifiedName: string,
 			createEntryIfMissing: boolean, // if set won't return undefined
-			globalStateRoot: GlobalStateRoot,
+			globalStateRoot: GlobalStateRoot<unknown>,
 			defaultImpl: ReactSimpleStateDependencyInjection["subscription"]["getGlobalStateSubscriptionsMemberInfo"]
-		) => ChildMemberInfoWithCallbacks<GlobalStateSubscriptionsEntry> | undefined;
+		) => ChildMemberInfoWithCallbacks<GlobalStateSubscriptionsEntry<State>> | undefined;
 		
-		getGlobalStateSubscriptions: (
+		getGlobalStateSubscriptions: <State>(
 			fullQualifiedName: string,
 			createEntryIfMissing: boolean, // if set won't return undefined
-			globalStateRoot: GlobalStateRoot,
+			globalStateRoot: GlobalStateRoot<unknown>,
 			defaultImpl: ReactSimpleStateDependencyInjection["subscription"]["getGlobalStateSubscriptions"]
-		) => GlobalStateSubscriptionsEntry | undefined;
+		) => GlobalStateSubscriptionsEntry<State> | undefined;
 
 		subscribeToGlobalState: <State>(
 			uniqueId: Guid,
 			subscription: Omit<GlobalStateSubscription<State>, "subscribedState"> & { subscribedState?: Partial<GlobalStateChangeFilters<State>> },
-			globalStateRoot: GlobalStateRoot,
+			globalStateRoot: GlobalStateRoot<unknown>,
 			defaultImpl: ReactSimpleStateDependencyInjection["subscription"]["subscribeToGlobalState"]
 		) => void;
 
 		unsubscribeFromGlobalState: (
 			uniqueId: Guid,
 			stateFullQualifiedName: string,
-			globalStateRoot: GlobalStateRoot,
+			globalStateRoot: GlobalStateRoot<unknown>,
 			defaultImpl: ReactSimpleStateDependencyInjection["subscription"]["unsubscribeFromGlobalState"]
 		) => void;
 
 		globalStateUpdateSubscribedComponents: <State>(
 			changeArgs: GlobalStateChangeArgs<State>,
 			options: SetStateOptions<State>,
-			globalStateRoot: GlobalStateRoot,
+			globalStateRoot: GlobalStateRoot<unknown>,
 			defaultImpl: ReactSimpleStateDependencyInjection["subscription"]["globalStateUpdateSubscribedComponents"]
 		) => void;
 
@@ -51,38 +51,38 @@ export interface ReactSimpleStateDependencyInjection {
 	};
 
 	globalState: {
-		getGlobalState: <State = unknown>(
+		getGlobalState: <State>(
 			stateFullQualifiedName: string, // full qualified child path
 			defaultValue: ValueOrCallback<State>,
-			globalStateRoot: GlobalStateRoot,
+			globalStateRoot: GlobalStateRoot<unknown>,
 			defaultImpl: ReactSimpleStateDependencyInjection["globalState"]["getGlobalState"]
 		) => State;
 
-		getGlobalStateOrEmpty: <State = unknown>(
+		getGlobalStateOrEmpty: <State>(
 			stateFullQualifiedName: string, // full qualified child path
-			globalStateRoot: GlobalStateRoot,
+			globalStateRoot: GlobalStateRoot<unknown>,
 			defaultImpl: ReactSimpleStateDependencyInjection["globalState"]["getGlobalStateOrEmpty"]
 		) => State | undefined;
 
-		setGlobalState: <State = unknown>(
+		setGlobalState: <State>(
 			stateFullQualifiedName: string, // full qualified child path
 			state: ValueOrCallbackWithArgs<State | undefined, State>,
 			options: SetStateOptions<State>,
-			globalStateRoot: GlobalStateRoot,
+			globalStateRoot: GlobalStateRoot<unknown>,
 			defaultImpl: ReactSimpleStateDependencyInjection["globalState"]["setGlobalState"]
 		) => State;
 
-		initGlobalState: <State = unknown>(
+		initGlobalState: <State>(
 			stateFullQualifiedName: string, // full qualified child path
 			state: ValueOrCallback<State>,
 			options: Omit<SetStateOptions<State>, "customMerge">,
-			globalStateRoot: GlobalStateRoot,
+			globalStateRoot: GlobalStateRoot<unknown>,
 			defaultImpl: ReactSimpleStateDependencyInjection["globalState"]["initGlobalState"]
 		) => State;
 
 		removeGlobalState: (
 			statePaths: string | string[], // full qualified child path
-			globalStateRoot: GlobalStateRoot,
+			globalStateRoot: GlobalStateRoot<unknown>,
 			defaultImpl: ReactSimpleStateDependencyInjection["globalState"]["removeGlobalState"]
 		) => void;
 	};

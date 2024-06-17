@@ -1,6 +1,6 @@
 import { Guid, ObjectCompareOptions } from "@react-simple/react-simple-util";
 
-export interface GlobalStateChangeArgs<State = unknown> {
+export interface GlobalStateChangeArgs<State> {
 	stateFullQualifiedName: string;
 	oldState: State | undefined; // during initialization by default value, we have no previous state
 	newState: State;
@@ -10,26 +10,20 @@ export interface GlobalStateConditionalChangeFilter<State> {
 	readonly condition: (changeArgs: GlobalStateChangeArgs<State>) => boolean;
 }
 
-export interface GlobalStateSelectorChangeFilter<State> {
-	readonly selector: (state: State | undefined) => unknown; // update component if selector value changes; uses sameObject() from react-simple-util
-	readonly compareOptions?: ObjectCompareOptions<boolean>;
-}
-
 export type GlobalStateChangeFilter<State> =
 	| "always"
 	| "never"
-	| GlobalStateConditionalChangeFilter<State>
-	| GlobalStateSelectorChangeFilter<State>;
+	| GlobalStateConditionalChangeFilter<State>;
 
 // Instead of a flat list we build a hieararchy of subscriptions following the full qualified path 
 // using setChildMemberValue() from react-simple-mapping
-export interface GlobalStateSubscriptionsEntry {
+export interface GlobalStateSubscriptionsEntry<State> {
 	readonly fullQualifiedName: string;
-	readonly subscriptions: { [uniqueId: Guid]: GlobalStateSubscription };
-	readonly children: { [name: string]: GlobalStateSubscriptionsEntry };
+	readonly subscriptions: { [uniqueId: Guid]: GlobalStateSubscription<State> };
+	readonly children: { [name: string]: GlobalStateSubscriptionsEntry<unknown> };
 }
 
-export interface GlobalStateSubscription<State = unknown> {
+export interface GlobalStateSubscription<State> {
 	readonly fullQualifiedName: string;
 
 	// true to get all update, false to get no updates, function to get updates selectively
@@ -43,8 +37,8 @@ export interface GlobalStateSubscription<State = unknown> {
 	
 // default is REACT_SIMPLE_STATE.DEFAULTS.changeFilters.defaultUpdateFilters for initGlobalState() and setGlobalState() and
 // REACT_SIMPLE_STATE.DEFAULTS.changeFilters.defaultSubscribeFilters for subscribeToGlobalState() or useGlobalState()
-export interface GlobalStateChangeFilters<State = unknown> {
-	readonly thisState: GlobalStateChangeFilter<State>; // required, but if not, then default is "always"
-	readonly parentState: GlobalStateChangeFilter<State>; // default is "never" when updating and "always" when subscribing
-	readonly childState: GlobalStateChangeFilter<State>; // default is "always" when updating and "never" when subscribing
+export interface GlobalStateChangeFilters<State> {
+	readonly thisState?: GlobalStateChangeFilter<State>; // required, but if not, then default is "always"
+	readonly parentState?: GlobalStateChangeFilter<State>; // default is "never" when updating and "always" when subscribing
+	readonly childState?: GlobalStateChangeFilter<State>; // default is "always" when updating and "never" when subscribing
 }

@@ -1,27 +1,27 @@
 import { ChildMemberInfoWithCallbacks, getChildMemberInfo, splitFullQualifiedName } from "@react-simple/react-simple-mapping";
 import { REACT_SIMPLE_STATE } from "data";
 import {
-  GlobalStateChangeArgs, GlobalStateChangeFilter, GlobalStateChangeFilters, GlobalStateConditionalChangeFilter, GlobalStateSelectorChangeFilter,
-  GlobalStateSubscription, GlobalStateSubscriptionsEntry
+  GlobalStateChangeArgs, GlobalStateChangeFilter, GlobalStateChangeFilters, GlobalStateConditionalChangeFilter, GlobalStateSubscription,
+  GlobalStateSubscriptionsEntry
 } from "./types";
-import { Guid, forEachReverse, logTrace, recursiveIteration, sameObjects } from "@react-simple/react-simple-util";
+import { Guid, forEachReverse, logTrace, recursiveIteration } from "@react-simple/react-simple-util";
 import { GlobalStateRoot, SetStateOptions } from "types";
 
-function getGlobalStateSubscriptionsMemberInfo_default(
+function getGlobalStateSubscriptionsMemberInfo_default<State>(
   fullQualifiedName: string,
   createEntryIfMissing: boolean, // if set won't return undefined
-  globalStateRoot: GlobalStateRoot
-): ChildMemberInfoWithCallbacks<GlobalStateSubscriptionsEntry> | undefined {
-  return getChildMemberInfo<GlobalStateSubscriptionsEntry>(
+  globalStateRoot: GlobalStateRoot<unknown>
+): ChildMemberInfoWithCallbacks<GlobalStateSubscriptionsEntry<State>> | undefined {
+  return getChildMemberInfo<GlobalStateSubscriptionsEntry<State>>(
     globalStateRoot.subscriptions,
     fullQualifiedName,
     !!createEntryIfMissing,
     {
       getMemberValue: (parent, names) => {
-        return (parent as GlobalStateSubscriptionsEntry).children[names.name];
+        return (parent as GlobalStateSubscriptionsEntry<unknown>).children[names.name];
       },
       setMemberValue: (parent, names, value) => {
-        (parent as GlobalStateSubscriptionsEntry).children[names.name] = value as GlobalStateSubscriptionsEntry;
+        (parent as GlobalStateSubscriptionsEntry<unknown>).children[names.name] = value as GlobalStateSubscriptionsEntry<unknown>;
         return true;
       },
       createMember: (_, names) => ({
@@ -35,11 +35,11 @@ function getGlobalStateSubscriptionsMemberInfo_default(
 
 REACT_SIMPLE_STATE.DI.subscription.getGlobalStateSubscriptionsMemberInfo = getGlobalStateSubscriptionsMemberInfo_default;
 
-export function getGlobalStateSubscriptionsMemberInfo(
+export function getGlobalStateSubscriptionsMemberInfo<State>(
   fullQualifiedName: string,
   createEntryIfMissing?: boolean, // if set won't return undefined
-  globalStateRoot?: GlobalStateRoot
-): ChildMemberInfoWithCallbacks<GlobalStateSubscriptionsEntry> | undefined {
+  globalStateRoot?: GlobalStateRoot<unknown>
+): ChildMemberInfoWithCallbacks<GlobalStateSubscriptionsEntry<State>> | undefined {
   return REACT_SIMPLE_STATE.DI.subscription.getGlobalStateSubscriptionsMemberInfo(
     fullQualifiedName,
     !!createEntryIfMissing,    
@@ -48,22 +48,22 @@ export function getGlobalStateSubscriptionsMemberInfo(
   );
 }
 
-function getGlobalStateSubscriptions_default(
+function getGlobalStateSubscriptions_default<State>(
   fullQualifiedName: string,
   createEntryIfMissing: boolean, // if set won't return undefined
-  globalStateRoot: GlobalStateRoot
-): GlobalStateSubscriptionsEntry | undefined {
-  return getGlobalStateSubscriptionsMemberInfo(fullQualifiedName, createEntryIfMissing, globalStateRoot)?.getValue?.();
+  globalStateRoot: GlobalStateRoot<unknown>
+): GlobalStateSubscriptionsEntry<State> | undefined {
+  return getGlobalStateSubscriptionsMemberInfo<State>(fullQualifiedName, createEntryIfMissing, globalStateRoot)?.getValue?.();
 }
 
 REACT_SIMPLE_STATE.DI.subscription.getGlobalStateSubscriptions = getGlobalStateSubscriptions_default;
 
-export function getGlobalStateSubscriptions(
+export function getGlobalStateSubscriptions<State>(
   fullQualifiedName: string,
   createEntryIfMissing?: boolean, // if set won't return undefined
-  globalStateRoot?: GlobalStateRoot
-): GlobalStateSubscriptionsEntry | undefined {
-  return REACT_SIMPLE_STATE.DI.subscription.getGlobalStateSubscriptions(
+  globalStateRoot?: GlobalStateRoot<unknown>
+): GlobalStateSubscriptionsEntry<State> | undefined {
+  return REACT_SIMPLE_STATE.DI.subscription.getGlobalStateSubscriptions<State>(
     fullQualifiedName,
     !!createEntryIfMissing,
     globalStateRoot || REACT_SIMPLE_STATE.ROOT_STATE,
@@ -74,9 +74,9 @@ export function getGlobalStateSubscriptions(
 const subscribeToGlobalState_default = <State>(
   uniqueId: Guid,
   subscription: Omit<GlobalStateSubscription<State>, "subscribedState"> & { subscribedState?: Partial<GlobalStateChangeFilters<State>> },
-  globalStateRoot: GlobalStateRoot
+  globalStateRoot: GlobalStateRoot<unknown>
 ) => {
-  const member = getGlobalStateSubscriptionsMemberInfo(subscription.fullQualifiedName, true, globalStateRoot)!;
+  const member = getGlobalStateSubscriptionsMemberInfo<State>(subscription.fullQualifiedName, true, globalStateRoot)!;
   const subs = member.getValue();
   const subscribedState = {
     ...REACT_SIMPLE_STATE.DEFAULTS.changeFilters.defaultSubscribeFilters,
@@ -90,7 +90,7 @@ const subscribeToGlobalState_default = <State>(
         [uniqueId]: {
           ...subscription ,
           subscribedState
-        } as GlobalStateSubscription
+        }
       },
       children: {}
     });
@@ -99,7 +99,7 @@ const subscribeToGlobalState_default = <State>(
     subs.subscriptions[uniqueId] = {
       ...subscription,
       subscribedState
-    } as GlobalStateSubscription;
+    }
   }
 };
 
@@ -108,9 +108,9 @@ REACT_SIMPLE_STATE.DI.subscription.subscribeToGlobalState = subscribeToGlobalSta
 export const subscribeToGlobalState = <State>(
   uniqueId: Guid,
   subscription: Omit<GlobalStateSubscription<State>, "subscribedState"> & { subscribedState?: Partial<GlobalStateChangeFilters<State>> },
-  globalStateRoot?: GlobalStateRoot
+  globalStateRoot?: GlobalStateRoot<unknown>
 ) => {
-  return REACT_SIMPLE_STATE.DI.subscription.subscribeToGlobalState(
+  return REACT_SIMPLE_STATE.DI.subscription.subscribeToGlobalState<State>(
     uniqueId,
     subscription,
     globalStateRoot || REACT_SIMPLE_STATE.ROOT_STATE,
@@ -121,7 +121,7 @@ export const subscribeToGlobalState = <State>(
 const unsubscribeFromGlobalState_default = (
   uniqueId: Guid,
   stateFullQualifiedName: string,
-  globalStateRoot: GlobalStateRoot
+  globalStateRoot: GlobalStateRoot<unknown>
 ) => {
   const subs = getGlobalStateSubscriptions(stateFullQualifiedName, false, globalStateRoot);
 
@@ -135,7 +135,7 @@ REACT_SIMPLE_STATE.DI.subscription.unsubscribeFromGlobalState = unsubscribeFromG
 export const unsubscribeFromGlobalState = (
   uniqueId: Guid,
   stateFullQualifiedName: string,
-  globalStateRoot?: GlobalStateRoot
+  globalStateRoot?: GlobalStateRoot<unknown>
 ) => {
   return REACT_SIMPLE_STATE.DI.subscription.unsubscribeFromGlobalState(
     uniqueId,
@@ -158,13 +158,6 @@ function evaluateGlobalStateComponentChangeTrigger_default<State>(
   else if ((trigger as GlobalStateConditionalChangeFilter<State>).condition) {
     return (trigger as GlobalStateConditionalChangeFilter<State>).condition(changeArgs);
   }
-  else if ((trigger as GlobalStateSelectorChangeFilter<State>).selector) {
-    return !sameObjects(
-      (trigger as GlobalStateSelectorChangeFilter<State>).selector(changeArgs.oldState),
-      (trigger as GlobalStateSelectorChangeFilter<State>).selector(changeArgs.newState),
-      (trigger as GlobalStateSelectorChangeFilter<State>).compareOptions
-    );
-  }
   else {
     return false;
   }
@@ -184,7 +177,7 @@ export function evaluateGlobalStateComponentChangeTrigger<State>(
 const updateSubscribedGlobalStateComponents_default = <State>(
   changeArgs: GlobalStateChangeArgs<State>,
   options: SetStateOptions<State>,
-  globalStateRoot: GlobalStateRoot
+  globalStateRoot: GlobalStateRoot<unknown>
 ) => {
   const { stateFullQualifiedName } = changeArgs;
   const updateState = {
@@ -197,75 +190,77 @@ const updateSubscribedGlobalStateComponents_default = <State>(
     { stateFullQualifiedName, changeArgs, options, updateState }
   ), null, REACT_SIMPLE_STATE.LOGGING.logLevel);
 
-    const thisSubs = getGlobalStateSubscriptions(stateFullQualifiedName, false, globalStateRoot);
+  const thisSubs = getGlobalStateSubscriptions<State>(stateFullQualifiedName, false, globalStateRoot);
 
-    // this state
-    if (thisSubs && evaluateGlobalStateComponentChangeTrigger(updateState.thisState, changeArgs)) {
-      logTrace(log => log(
-        `[globalStateUpdateSubscribedComponents] updating this state: '${thisSubs.fullQualifiedName}'`,
-        { updateState, thisSubs }
-      ), null, REACT_SIMPLE_STATE.LOGGING.logLevel);
+  // this state
+  if (thisSubs && updateState.thisState && evaluateGlobalStateComponentChangeTrigger(updateState.thisState, changeArgs)) {
+    logTrace(log => log(
+      `[globalStateUpdateSubscribedComponents] updating this state: '${thisSubs.fullQualifiedName}'`,
+      { updateState, thisSubs }
+    ), null, REACT_SIMPLE_STATE.LOGGING.logLevel);
 
-      for (const [uniqueId, thisSub] of Object.entries(thisSubs.subscriptions)) {
-        if (evaluateGlobalStateComponentChangeTrigger(thisSub.subscribedState.thisState, changeArgs)) {
-          logTrace(log => log(
-            `[globalStateUpdateSubscribedComponents] updating subscriberId: ${uniqueId}'`,
-            { uniqueId, thisSub }
-          ), null, REACT_SIMPLE_STATE.LOGGING.logLevel);
-
-          thisSub.onUpdate(changeArgs, thisSub.fullQualifiedName);
-        }
-        else {
-          logTrace(log => log(
-            `[globalStateUpdateSubscribedComponents] skipping subscriberId: ${uniqueId}'`,
-            { uniqueId, thisSub }
-          ), null, REACT_SIMPLE_STATE.LOGGING.logLevel);
-        }
-      }
-    }
-
-    // parents
-    if (updateState.parentState && evaluateGlobalStateComponentChangeTrigger(updateState.parentState, changeArgs)) {
-      const fullQualifiedNameParts = splitFullQualifiedName(stateFullQualifiedName);
-      const parentSubsPerLevel: GlobalStateSubscriptionsEntry[] = []; // paths to all parents
-      let node = globalStateRoot.subscriptions;
-    
-      for (const part of fullQualifiedNameParts) {
-        parentSubsPerLevel.push(node);
-        node = node.children[part];
-
-        if (!node) {
-          break;
-        }
-      }
-
-      forEachReverse(parentSubsPerLevel, parentSubs => {
+    for (const [uniqueId, thisSub] of Object.entries(thisSubs.subscriptions)) {
+      if (thisSub.subscribedState.thisState &&
+        evaluateGlobalStateComponentChangeTrigger(thisSub.subscribedState.thisState, changeArgs)
+      ) {
         logTrace(log => log(
-          `[globalStateUpdateSubscribedComponents] updating parent state: '${parentSubs.fullQualifiedName}'`,
-          { updateState, parentSubs }
+          `[globalStateUpdateSubscribedComponents] updating subscriberId: ${uniqueId}'`,
+          { uniqueId, thisSub }
         ), null, REACT_SIMPLE_STATE.LOGGING.logLevel);
 
-        for (const [uniqueId, parentSub] of Object.entries(parentSubs.subscriptions)) {
-          if (parentSub.subscribedState.childState &&
-            evaluateGlobalStateComponentChangeTrigger(parentSub.subscribedState.childState, changeArgs)
-          ) {
-            logTrace(log => log(
-              `[globalStateUpdateSubscribedComponents] updating subscriberId: ${uniqueId}'`,
-              { uniqueId, parentSub }
-            ), null, REACT_SIMPLE_STATE.LOGGING.logLevel);
+        thisSub.onUpdate(changeArgs, thisSub.fullQualifiedName);
+      }
+      else {
+        logTrace(log => log(
+          `[globalStateUpdateSubscribedComponents] skipping subscriberId: ${uniqueId}'`,
+          { uniqueId, thisSub }
+        ), null, REACT_SIMPLE_STATE.LOGGING.logLevel);
+      }
+    }
+  }
 
-            parentSub.onUpdate(changeArgs, parentSub.fullQualifiedName);
-          } else {
-            logTrace(log => log(
-              `[globalStateUpdateSubscribedComponents] skipping subscriberId: ${uniqueId}'`,
-              { uniqueId, parentSub }
-            ), null, REACT_SIMPLE_STATE.LOGGING.logLevel);
-          }
-        }
-      });
+  // parents
+  if (updateState.parentState && evaluateGlobalStateComponentChangeTrigger(updateState.parentState, changeArgs)) {
+    const fullQualifiedNameParts = splitFullQualifiedName(stateFullQualifiedName);
+    const parentSubsPerLevel: GlobalStateSubscriptionsEntry<unknown>[] = []; // paths to all parents
+    let node = globalStateRoot.subscriptions;
+    
+    for (const part of fullQualifiedNameParts) {
+      parentSubsPerLevel.push(node);
+      node = node.children[part];
+
+      if (!node) {
+        break;
+      }
     }
 
-    // children
+    forEachReverse(parentSubsPerLevel, parentSubs => {
+      logTrace(log => log(
+        `[globalStateUpdateSubscribedComponents] updating parent state: '${parentSubs.fullQualifiedName}'`,
+        { updateState, parentSubs }
+      ), null, REACT_SIMPLE_STATE.LOGGING.logLevel);
+
+      for (const [uniqueId, parentSub] of Object.entries(parentSubs.subscriptions)) {
+        if (parentSub.subscribedState.childState &&
+          evaluateGlobalStateComponentChangeTrigger(parentSub.subscribedState.childState, changeArgs)
+        ) {
+          logTrace(log => log(
+            `[globalStateUpdateSubscribedComponents] updating subscriberId: ${uniqueId}'`,
+            { uniqueId, parentSub }
+          ), null, REACT_SIMPLE_STATE.LOGGING.logLevel);
+
+          parentSub.onUpdate(changeArgs, parentSub.fullQualifiedName);
+        } else {
+          logTrace(log => log(
+            `[globalStateUpdateSubscribedComponents] skipping subscriberId: ${uniqueId}'`,
+            { uniqueId, parentSub }
+          ), null, REACT_SIMPLE_STATE.LOGGING.logLevel);
+        }
+      }
+    });
+  }
+
+  // children
   if (thisSubs && (updateState.childState && evaluateGlobalStateComponentChangeTrigger(updateState.childState, changeArgs))) {
     recursiveIteration(
       Object.values(thisSubs.children),
@@ -304,7 +299,7 @@ REACT_SIMPLE_STATE.DI.subscription.globalStateUpdateSubscribedComponents = updat
 export const globalStateUpdateSubscribedComponents = <State>(
   changeArgs: GlobalStateChangeArgs<State>,
   options?: SetStateOptions<State>,
-  globalStateRoot?: GlobalStateRoot
+  globalStateRoot?: GlobalStateRoot<unknown>
 ) => {
   REACT_SIMPLE_STATE.DI.subscription.globalStateUpdateSubscribedComponents(
     changeArgs,

@@ -4,11 +4,11 @@ export { };
 // 	readonly contextId: string;
 // }
 
-// export interface ContextStateChangeArgs<State = unknown> extends StateChangeArgs<State> {
+// export interface ContextStateChangeArgs<State> extends StateChangeArgs<State> {
 // 	contextId: string;
 // }
 
-// export interface ContextStateEntry<State = unknown> extends StateEntry<State, ContextStateChangeArgs<State>> {
+// export interface ContextStateEntry<State> extends StateEntry<State, ContextStateChangeArgs<State>> {
 // 	readonly contextId: string;
 // }
 

@@ -10,7 +10,7 @@ import { globalStateUpdateSubscribedComponents } from "subscription";
 // Use the useGlobalState() hook to get the parent component/hook updated on state changes.
 function getGlobalStateOrEmpty_default<State>(
 	stateFullQualifiedName: string,
-	globalStateRoot: GlobalStateRoot
+	globalStateRoot: GlobalStateRoot<unknown>
 ): State | undefined {
 	// get current state or default state
 	return getChildMemberValue<State>(globalStateRoot.state, stateFullQualifiedName);
@@ -22,7 +22,7 @@ REACT_SIMPLE_STATE.DI.globalState.getGlobalStateOrEmpty = getGlobalStateOrEmpty_
 // Use the useGlobalState() hook to get the parent component/hook updated on state changes.
 export function getGlobalStateOrEmpty<State>(
 	stateFullQualifiedName: string,
-	globalStateRoot?: GlobalStateRoot
+	globalStateRoot?: GlobalStateRoot<unknown>
 ): State | undefined {
 	// get current state or default state
 	return REACT_SIMPLE_STATE.DI.globalState.getGlobalStateOrEmpty<State>(
@@ -37,7 +37,7 @@ export function getGlobalStateOrEmpty<State>(
 function getGlobalState_default<State>(
 	stateFullQualifiedName: string,
 	defaultValue: ValueOrCallback<State>,
-	globalStateRoot: GlobalStateRoot
+	globalStateRoot: GlobalStateRoot<unknown>
 ): State {
 	// get current state or default state
 	return getGlobalStateOrEmpty<State>(stateFullQualifiedName, globalStateRoot) || getResolvedCallbackValue(defaultValue);
@@ -50,7 +50,7 @@ REACT_SIMPLE_STATE.DI.globalState.getGlobalState = getGlobalState_default;
 export function getGlobalState<State>(
 	stateFullQualifiedName: string,
 	defaultValue: ValueOrCallback<State>,
-	globalStateRoot?: GlobalStateRoot
+	globalStateRoot?: GlobalStateRoot<unknown>
 ): State {
 	// get current state or default state
 	return REACT_SIMPLE_STATE.DI.globalState.getGlobalState<State>(
@@ -68,7 +68,7 @@ const setGlobalState_default = <State>(
 
 	// update this state and child states by default
 	options: SetStateOptions<State>,
-	globalStateRoot: GlobalStateRoot
+	globalStateRoot: GlobalStateRoot<unknown>
 ) => {
 	// get current state, calculate new state
 	const oldState = getGlobalStateOrEmpty<State>(stateFullQualifiedName, globalStateRoot);
@@ -100,12 +100,12 @@ const setGlobalState_default = <State>(
 REACT_SIMPLE_STATE.DI.globalState.setGlobalState = setGlobalState_default;
 
 // Sets global state and notifies all subscribed components. Accepts partial state which will be merged with the current state.
-export const setGlobalState = <State = unknown>(
+export const setGlobalState = <State>(
 	stateFullQualifiedName: string,
 	state: ValueOrCallbackWithArgs<State | undefined, State>,
 	// update this state and child states by default
 	options?: SetStateOptions<State>,
-	globalStateRoot?: GlobalStateRoot
+	globalStateRoot?: GlobalStateRoot<unknown>
 ) => {
 	return REACT_SIMPLE_STATE.DI.globalState.setGlobalState(
 		stateFullQualifiedName,
@@ -128,7 +128,7 @@ const initGlobalState_default = <State>(
 	state: ValueOrCallback<State>,
 	// update this state and child states by default
 	options: InitStateOptions<State>,
-	globalStateRoot: GlobalStateRoot
+	globalStateRoot: GlobalStateRoot<unknown>
 ) => {
 	// get current state, calculate new state
 	const newState = getResolvedCallbackValue(state); // no merging, it's a complete state
@@ -154,7 +154,7 @@ export const initGlobalState = <State>(
 	state: ValueOrCallback<State>,
 	// update this state and child states by default
 	options?: InitStateOptions<State>,
-	globalStateRoot?: GlobalStateRoot
+	globalStateRoot?: GlobalStateRoot<unknown>
 ) => {
 	return REACT_SIMPLE_STATE.DI.globalState.initGlobalState(
 		stateFullQualifiedName,
@@ -177,7 +177,7 @@ export const initGlobalState = <State>(
 // (Also, unlike initContextState(), subscribers won't get notified on the state change; it's completely silent. It's for finalizers.)
 const removeGlobalState_default = (
 	statePaths: string | string[],
-	globalStateRoot: GlobalStateRoot
+	globalStateRoot: GlobalStateRoot<unknown>
 ) => {
 	logTrace(log => log(
 		`[removeGlobalState] statePaths=[${getResolvedArray(statePaths).join(", ")}]`,
@@ -199,7 +199,7 @@ REACT_SIMPLE_STATE.DI.globalState.removeGlobalState = removeGlobalState_default;
 // (Also, unlike initContextState(), subscribers won't get notified on the state change; it's completely silent. It's for finalizers.)
 export const removeGlobalState = (
 	statePaths: string | string[],
-	globalStateRoot?: GlobalStateRoot
+	globalStateRoot?: GlobalStateRoot<unknown>
 ) => {
 	REACT_SIMPLE_STATE.DI.globalState.removeGlobalState(
 		statePaths,

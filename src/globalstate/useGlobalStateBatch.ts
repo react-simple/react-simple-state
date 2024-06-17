@@ -10,7 +10,7 @@ import { GlobalStateChangeFilters, subscribeToGlobalState, unsubscribeFromGlobal
 export interface UseGlobalStateBatchProps {
 	stateFullQualifiedName: string[];
 	
-	stateChangeFilters: GlobalStateChangeFilters;
+	stateChangeFilters: GlobalStateChangeFilters<unknown>;
 
 	// optional
 	subscriberId?: string; // custom metadata for tracing info only

@@ -25,7 +25,7 @@ export { };
 
 // // Gets the current context state as it is (nullable), but the caller component/hook won't get updated on state changes. Suitable for event handlers.
 // // Use the useContextState() hook to get the parent component/hook updated on state changes.
-// export const getGlobalContextStateEntry = <State = unknown>(contextId: string, stateKey: string) => {
+// export const getGlobalContextStateEntry = <State>(contextId: string, stateKey: string) => {
 // 	const context = getGlobalContextEntry(contextId);
 // 	const stateEntry = context?.contextState?.[stateKey] as ContextStateEntry<State> | undefined;
 
@@ -34,7 +34,7 @@ export { };
 
 // // Gets the current context state as it is (nullable), but the caller component/hook won't get updated on state changes. Suitable for event handlers.
 // // Use the useContextState() hook to get the parent component/hook updated on state changes.
-// export const getOrCreateGlobalContextStateEntry = <State = unknown>(
+// export const getOrCreateGlobalContextStateEntry = <State>(
 // 	contextId: string,
 // 	stateKey: string,
 // 	defaultValue: ValueOrCallback<State>

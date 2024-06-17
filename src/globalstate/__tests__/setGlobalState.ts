@@ -135,3 +135,67 @@ it('setGlobalState.childState.update.childState.called', () => {
   expect(triggerPath).toBeDefined();
   expect(triggerPath).toBe("a.b.c");
 });
+
+it('setGlobalState.childState.update.childState.called.conditional.triggerPath', () => {
+  // clear global state
+  resetGlobalState();
+  const uniqueId = newGuid();
+  const onUpdate1 = jest.fn();
+  const onUpdate2 = jest.fn();
+
+  // without condition it's called twice
+  subscribeToGlobalState(uniqueId, { fullQualifiedName: "a.b.c", onUpdate: onUpdate2 });
+
+  setGlobalState("a", { b: { c: 2 } }, {});
+  setGlobalState("a.b", { c: 3 }, {});
+
+  expect(onUpdate2).toHaveBeenCalledTimes(2);
+
+  // with condition it's called once only (subscribing again with the same uniqeId will overwrite the previous subscription)
+  subscribeToGlobalState(uniqueId, {
+    fullQualifiedName: "a.b.c",
+    subscribedState: {
+      parentState: {
+        condition: t => t.stateFullQualifiedName === "a.b"
+      }
+    },
+    onUpdate: onUpdate1
+  });
+
+  setGlobalState("a", { b: { c: 2 } }, {});
+  setGlobalState("a.b", { c: 3 }, {});
+
+  expect(onUpdate1).toHaveBeenCalledTimes(1);
+});
+
+it('setGlobalState.childState.update.childState.called.conditional.value', () => {
+  // clear global state
+  resetGlobalState();
+  const uniqueId = newGuid();
+  const onUpdate1 = jest.fn();
+  const onUpdate2 = jest.fn();
+
+  // without condition it's called twice
+  subscribeToGlobalState(uniqueId, { fullQualifiedName: "a.b.c", onUpdate: onUpdate2 });
+
+  setGlobalState("a", { b: { c: 2 } }, {});
+  setGlobalState("a.b", { c: 3 }, {});
+
+  expect(onUpdate2).toHaveBeenCalledTimes(2);
+
+  // with condition it's called once only (subscribing again with the same uniqeId will overwrite the previous subscription)
+  subscribeToGlobalState<typeof TEST_DATA.a.b>(uniqueId, {
+    fullQualifiedName: "a.b.c",
+    subscribedState: {
+      parentState: {
+        condition: t => t.oldState?.c !== t.newState.c
+      }
+    },
+    onUpdate: onUpdate1
+  });
+
+  setGlobalState("a", { b: { c: 2 } }, {});
+  setGlobalState("a.b", { c: 3 }, {});
+
+  expect(onUpdate1).toHaveBeenCalledTimes(1);
+});

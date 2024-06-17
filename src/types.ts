@@ -2,10 +2,10 @@ import { LogLevel, ValueOrCallbackWithArgs } from "@react-simple/react-simple-ut
 import { GlobalStateChangeFilters, GlobalStateSubscriptionsEntry } from "subscription/types";
 import { ReactSimpleStateDependencyInjection } from "types.di";
 
-export interface GlobalStateRoot {
+export interface GlobalStateRoot<State> {
 	// recursive object stateFullQualifiedName is passed to getChildMemberValue() from react-simple-mapping as full qualified child name
 	state: object;
-	subscriptions: GlobalStateSubscriptionsEntry;
+	subscriptions: GlobalStateSubscriptionsEntry<State>;
 }
 
 export interface ReactSimpleState {
@@ -13,15 +13,15 @@ export interface ReactSimpleState {
 		logLevel: LogLevel; // for functions in react-simple-state
 	};
 
-	ROOT_STATE: GlobalStateRoot;
+	ROOT_STATE: GlobalStateRoot<unknown>;
 	DI: ReactSimpleStateDependencyInjection;
 
 	readonly DEFAULTS: {
 		changeFilters: {
-			always: GlobalStateChangeFilters; // always update all subscribed components (parent, children, this state)
-			never: GlobalStateChangeFilters; // never update any subscribed components
-			defaultSubscribeFilters: GlobalStateChangeFilters; // default for subscribeToChanges when using useGlobalState()
-			defaultUpdateFilters: GlobalStateChangeFilters; // default for updateStates when using setGlobalState()
+			always: GlobalStateChangeFilters<unknown>; // always update all subscribed components (parent, children, this state)
+			never: GlobalStateChangeFilters<unknown>; // never update any subscribed components
+			defaultSubscribeFilters: GlobalStateChangeFilters<unknown>; // default for subscribeToChanges when using useGlobalState()
+			defaultUpdateFilters: GlobalStateChangeFilters<unknown>; // default for updateStates when using setGlobalState()
 		};
 	}
 }
