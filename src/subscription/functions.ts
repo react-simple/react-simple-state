@@ -1,8 +1,6 @@
 import { ChildMemberInfoWithCallbacks, getChildMemberInfo, splitFullQualifiedName } from "@react-simple/react-simple-mapping";
 import { REACT_SIMPLE_STATE } from "data";
-import {
-  GlobalStateChangeArgs, GlobalStateUpdateCondition, GlobalStateUpdateConditions, GlobalStateSubscription, GlobalStateSubscriptionsEntry
-} from "./types";
+import { GlobalStateChangeArgs, GlobalStateUpdateConditions, GlobalStateSubscription, GlobalStateSubscriptionsEntry } from "./types";
 import { Guid, forEachReverse, logTrace, recursiveIteration } from "@react-simple/react-simple-util";
 import { GlobalStateRoot, SetStateOptions } from "types";
 
@@ -27,7 +25,11 @@ function getGlobalStateSubscriptionsMemberInfo_default<State>(
         fullQualifiedName: names.fullQualifiedName,
         subscriptions: {},
         children: {}
-      })
+      }),
+      deleteMember: (parent, names) => {
+        delete (parent as GlobalStateSubscriptionsEntry<unknown>).children[names.name];
+        return true;
+      }
     }
   );
 }
@@ -140,24 +142,6 @@ export const unsubscribeFromGlobalState = (
   );
 };
 
-function evaluateGlobalStateUpdateCondition_default<State>(
-  trigger: GlobalStateUpdateCondition<State>,
-  changeArgs: GlobalStateChangeArgs<State>
-): boolean {
-  return trigger === true || trigger === false ? trigger : trigger(changeArgs);
-}
-
-REACT_SIMPLE_STATE.DI.subscription.evaluateGlobalStateUpdateCondition = evaluateGlobalStateUpdateCondition_default;
-
-export function evaluateGlobalStateUpdateCondition<State>(
-  trigger: GlobalStateUpdateCondition<State>,
-  changeArgs: GlobalStateChangeArgs<State>
-): boolean {
-  return REACT_SIMPLE_STATE.DI.subscription.evaluateGlobalStateUpdateCondition(
-    trigger, changeArgs, evaluateGlobalStateUpdateCondition_default
-  );
-}
-
 const globalStateUpdateSubscribedComponents_default = <State>(
   changeArgs: GlobalStateChangeArgs<State>,
   options: SetStateOptions<State>,
@@ -171,7 +155,7 @@ const globalStateUpdateSubscribedComponents_default = <State>(
     { fullQualifiedName, changeArgs, options }
   ), null, REACT_SIMPLE_STATE.LOGGING.logLevel);
 
-  if (!updateState?.condition || evaluateGlobalStateUpdateCondition(updateState.condition, changeArgs)) {
+  if (!updateState?.condition || updateState.condition(changeArgs)) {
     const thisSubs = getGlobalStateSubscriptions<State>(fullQualifiedName, false, globalStateRoot);
 
     // this state
@@ -183,7 +167,7 @@ const globalStateUpdateSubscribedComponents_default = <State>(
 
       for (const [uniqueId, thisSub] of Object.entries(thisSubs.subscriptions)) {
         if (thisSub.subscribedState.thisState !== false &&
-          (!thisSub.subscribedState.condition || evaluateGlobalStateUpdateCondition(thisSub.subscribedState.condition, changeArgs))
+          (!thisSub.subscribedState.condition || thisSub.subscribedState.condition(changeArgs))
         ) {
           logTrace(log => log(
             `[globalStateUpdateSubscribedComponents] updating subscriberId: ${uniqueId}'`,
@@ -230,7 +214,7 @@ const globalStateUpdateSubscribedComponents_default = <State>(
 
         for (const [uniqueId, parentSub] of Object.entries(parentSubs.subscriptions)) {
           if (parentSub.subscribedState.childState !== false &&
-            (!parentSub.subscribedState.condition || evaluateGlobalStateUpdateCondition(parentSub.subscribedState.condition, changeArgs))
+            (!parentSub.subscribedState.condition || parentSub.subscribedState.condition(changeArgs))
           ) {
             logTrace(log => log(
               `[globalStateUpdateSubscribedComponents] updating subscriberId: ${uniqueId}'`,
@@ -263,7 +247,7 @@ const globalStateUpdateSubscribedComponents_default = <State>(
 
           for (const [uniqueId, childSub] of Object.entries(childSubs.subscriptions)) {
             if (childSub.subscribedState.parentState !== false &&
-              (!childSub.subscribedState.condition || evaluateGlobalStateUpdateCondition(childSub.subscribedState.condition, changeArgs))
+              (!childSub.subscribedState.condition || childSub.subscribedState.condition(changeArgs))
             ) {
               logTrace(log => log(
                 `[globalStateUpdateSubscribedComponents] updating subscriberId: ${uniqueId}'`,

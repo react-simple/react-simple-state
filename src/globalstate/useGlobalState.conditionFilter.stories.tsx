@@ -115,7 +115,7 @@ const Component = (props: ComponentProps) => {
 
 			return () => {
 				// Finalize
-				removeGlobalState("form_values");
+				removeGlobalState("form_values", { removeSubscriptions: true });
 			};
 		},
 		[]);

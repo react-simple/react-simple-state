@@ -202,7 +202,7 @@ const removeGlobalState_default = (
 				globalStateRoot.state = ROOT_STATE_DEFAULT.state;
 			}
 			else {
-				deleteChildMember(globalStateRoot.state as object, fullQualifiedName, { deleteEmptyParents: removeEmptyParents });
+				deleteChildMember(globalStateRoot.state as object, fullQualifiedName, !!removeEmptyParents);
 			}
 
 			if (removeSubscriptions) {
@@ -210,7 +210,7 @@ const removeGlobalState_default = (
 					globalStateRoot.subscriptions = ROOT_STATE_DEFAULT.subscriptions;
 				}
 				else {
-					getGlobalStateSubscriptionsMemberInfo(fullQualifiedName, false, globalStateRoot)?.deleteMember();
+					getGlobalStateSubscriptionsMemberInfo(fullQualifiedName, false, globalStateRoot)?.deleteMember(!!removeEmptyParents);
 				}
 			}
 		}

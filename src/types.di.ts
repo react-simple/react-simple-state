@@ -1,7 +1,7 @@
 import { ChildMemberInfoWithCallbacks } from "@react-simple/react-simple-mapping";
 import { Guid, ValueOrCallback, ValueOrCallbackWithArgs } from "@react-simple/react-simple-util";
 import {
-	GlobalStateChangeArgs, GlobalStateUpdateCondition, GlobalStateUpdateConditions, GlobalStateSubscription, GlobalStateSubscriptionsEntry	
+	GlobalStateChangeArgs, GlobalStateUpdateConditions, GlobalStateSubscription, GlobalStateSubscriptionsEntry	
  } from "subscription/types";
 import { GlobalStateRoot, RemoveStateOptions, SetStateOptions } from "types";
 
@@ -41,12 +41,6 @@ export interface ReactSimpleStateDependencyInjection {
 			globalStateRoot: GlobalStateRoot<unknown>,
 			defaultImpl: ReactSimpleStateDependencyInjection["subscription"]["globalStateUpdateSubscribedComponents"]
 		) => void;
-
-		evaluateGlobalStateUpdateCondition: <State>(
-			trigger: GlobalStateUpdateCondition<State>,
-			changeArgs: GlobalStateChangeArgs<State>,
-			defaultImpl: ReactSimpleStateDependencyInjection["subscription"]["evaluateGlobalStateUpdateCondition"]
-		) => boolean;
 	};
 
 	globalState: {

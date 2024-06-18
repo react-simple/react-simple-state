@@ -122,13 +122,13 @@ const Component = (props: ComponentProps) => {
 	// optional step: this is the root component, we initialize the state here and will remove it when finalizing
 	useEffect(
 		() => {
-			// Initialize
+			// Initialize			
 			initGlobalState("context_1", DEFAULT_FORM_STATE);
 			initGlobalState("context_2", DEFAULT_FORM_STATE);
 
 			return () => {
 				// Finalize
-				removeGlobalState(["context_1", "context_2"]);
+				removeGlobalState(["context_1", "context_2"], { removeSubscriptions: true });
 			};
 		},
 		[]);

@@ -6,11 +6,6 @@ export interface GlobalStateChangeArgs<State> {
 	newState: State;
 }
 
-export type GlobalStateUpdateCondition<State> =
-	| true // always
-	| false // never
-	| ((changeArgs: GlobalStateChangeArgs<State>) => boolean);
-
 // Instead of a flat list we build a hieararchy of subscriptions following the full qualified path 
 // using setChildMemberValue() from react-simple-mapping
 export interface GlobalStateSubscriptionsEntry<State> {
@@ -27,12 +22,12 @@ export interface GlobalStateSubscription<State> {
 
 	readonly onUpdate: (
 		changeArgs: GlobalStateChangeArgs<State>, // the change state
-		triggerFullQualifiedName: string // we can subscribe to parent and child state changes; this is the point of subscription
+		fullQualifiedName: string // we can subscribe to parent and child state changes; this is the point of subscription
 	) => void;
 
 	readonly onUpdateSkipped?: (
 		changeArgs: GlobalStateChangeArgs<State>, // the change state
-		triggerFullQualifiedName: string // we can subscribe to parent and child state changes; this is the point of subscription
+		fullQualifiedName: string // we can subscribe to parent and child state changes; this is the point of subscription
 	) => void;
 }
 	
@@ -40,5 +35,5 @@ export interface GlobalStateUpdateConditions<State> {
 	readonly thisState?: boolean; // default is true
 	readonly parentState?: boolean; // default is true
 	readonly childState?: boolean; // default is true
-	readonly condition?: GlobalStateUpdateCondition<State>;
+	readonly condition?: ((changeArgs: GlobalStateChangeArgs<State>) => boolean);
 }
