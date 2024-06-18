@@ -35,7 +35,7 @@ it('initGlobalState.childState.update.thisState', () => {
   resetGlobalState();
   const uniqueId = newGuid();
   
-  let changeArgs: GlobalStateChangeArgs | undefined;
+  let changeArgs: GlobalStateChangeArgs<typeof TEST_DATA.a.b.c> | undefined;
   let triggerPath: string | undefined;
 
   const onUpdate = jest.fn((t1, t2) => {
@@ -62,13 +62,13 @@ it('initGlobalState.childState.update.parentState.notCalled', () => {
   // clear global state
   resetGlobalState();
   const uniqueId = newGuid();
-  let args: GlobalStateChangeArgs | undefined;
+  let args: GlobalStateChangeArgs<typeof TEST_DATA.a.b.c> | undefined;
   const onUpdate = jest.fn(t => { args = t; });
 
   subscribeToGlobalState(uniqueId, { fullQualifiedName: "a", onUpdate });
   initGlobalState("a.b.c", 2, {
     updateState: {
-      parentState: "never"
+      parentState: false
     }
   });
 
@@ -81,7 +81,7 @@ it('initGlobalState.childState.update.parentState.called', () => {
   resetGlobalState();
   const uniqueId = newGuid();
 
-  let changeArgs: GlobalStateChangeArgs | undefined;
+  let changeArgs: GlobalStateChangeArgs<typeof TEST_DATA.a.b.c> | undefined;
   let triggerPath: string | undefined;
 
   const onUpdate = jest.fn((t1, t2) => {
@@ -108,7 +108,7 @@ it('initGlobalState.childState.update.childState.called', () => {
   resetGlobalState();
   const uniqueId = newGuid();
 
-  let changeArgs: GlobalStateChangeArgs | undefined;
+  let changeArgs: GlobalStateChangeArgs<typeof TEST_DATA.a.b> | undefined;
   let triggerPath: string | undefined;
 
   const onUpdate = jest.fn((t1, t2) => {
@@ -149,9 +149,7 @@ it('initGlobalState.childState.update.childState.called.conditional.triggerPath'
   subscribeToGlobalState(uniqueId, {
     fullQualifiedName: "a.b.c",
     subscribedState: {
-      parentState: {
-        condition: t => t.fullQualifiedName === "a.b"
-      }
+      condition: t => t.fullQualifiedName === "a.b"
     },
     onUpdate: onUpdate1
   });
@@ -181,9 +179,7 @@ it('initGlobalState.childState.update.childState.called.conditional.value', () =
   subscribeToGlobalState<typeof TEST_DATA.a.b>(uniqueId, {
     fullQualifiedName: "a.b.c",
     subscribedState: {
-      parentState: {
-        condition: t => t.oldState?.c !== t.newState.c
-      }
+      condition: t => t.oldState?.c !== t.newState.c
     },
     onUpdate: onUpdate1
   });

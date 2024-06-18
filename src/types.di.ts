@@ -1,8 +1,7 @@
 import { ChildMemberInfoWithCallbacks } from "@react-simple/react-simple-mapping";
 import { Guid, ValueOrCallback, ValueOrCallbackWithArgs } from "@react-simple/react-simple-util";
 import {
-	GlobalStateChangeArgs, GlobalStateChangeFilter, GlobalStateChangeFilters, GlobalStateSubscription, GlobalStateSubscriptionsEntry
-	
+	GlobalStateChangeArgs, GlobalStateUpdateCondition, GlobalStateUpdateConditions, GlobalStateSubscription, GlobalStateSubscriptionsEntry	
  } from "subscription/types";
 import { GlobalStateRoot, RemoveStateOptions, SetStateOptions } from "types";
 
@@ -24,7 +23,7 @@ export interface ReactSimpleStateDependencyInjection {
 
 		subscribeToGlobalState: <State>(
 			uniqueId: Guid,
-			subscription: Omit<GlobalStateSubscription<State>, "subscribedState"> & { subscribedState?: Partial<GlobalStateChangeFilters<State>> },
+			subscription: Omit<GlobalStateSubscription<State>, "subscribedState"> & { subscribedState?: Partial<GlobalStateUpdateConditions<State>> },
 			globalStateRoot: GlobalStateRoot<unknown>,
 			defaultImpl: ReactSimpleStateDependencyInjection["subscription"]["subscribeToGlobalState"]
 		) => void;
@@ -43,17 +42,17 @@ export interface ReactSimpleStateDependencyInjection {
 			defaultImpl: ReactSimpleStateDependencyInjection["subscription"]["globalStateUpdateSubscribedComponents"]
 		) => void;
 
-		evaluateGlobalStateComponentChangeTrigger: <State>(
-			trigger: GlobalStateChangeFilter<State>,
+		evaluateGlobalStateUpdateCondition: <State>(
+			trigger: GlobalStateUpdateCondition<State>,
 			changeArgs: GlobalStateChangeArgs<State>,
-			defaultImpl: ReactSimpleStateDependencyInjection["subscription"]["evaluateGlobalStateComponentChangeTrigger"]
+			defaultImpl: ReactSimpleStateDependencyInjection["subscription"]["evaluateGlobalStateUpdateCondition"]
 		) => boolean;
 	};
 
 	globalState: {
 		getGlobalState: <State>(
 			fullQualifiedName: string, // full qualified child path
-			defaultValue: ValueOrCallback<State>,
+			defaultState: ValueOrCallback<State>,
 			globalStateRoot: GlobalStateRoot<unknown>,
 			defaultImpl: ReactSimpleStateDependencyInjection["globalState"]["getGlobalState"]
 		) => State;
@@ -81,7 +80,7 @@ export interface ReactSimpleStateDependencyInjection {
 		) => State;
 
 		removeGlobalState: (
-			statePaths: string | string[], // full qualified child path
+			fullQualifiedNames: string | string[], // full qualified child path
 			options: RemoveStateOptions,
 			globalStateRoot: GlobalStateRoot<unknown>,
 			defaultImpl: ReactSimpleStateDependencyInjection["globalState"]["removeGlobalState"]

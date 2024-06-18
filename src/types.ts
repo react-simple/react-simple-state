@@ -1,6 +1,6 @@
 import { LogLevel, ValueOrCallbackWithArgs } from "@react-simple/react-simple-util";
 import { GlobalStateContextData } from "globalstate/context/types";
-import { GlobalStateChangeFilters, GlobalStateSubscriptionsEntry } from "subscription/types";
+import { GlobalStateUpdateConditions, GlobalStateSubscriptionsEntry } from "subscription/types";
 import { ReactSimpleStateDependencyInjection } from "types.di";
 
 export interface GlobalStateRoot<State> {
@@ -17,32 +17,28 @@ export interface ReactSimpleState {
 	ROOT_STATE: GlobalStateRoot<unknown>;
 	CONTEXTS: { [contextId: string]: GlobalStateContextData };
 
-	readonly DEFAULTS: {
-		changeFilters: {
-			always: GlobalStateChangeFilters<unknown>; // always update all subscribed components (parent, children, this state)
-			never: GlobalStateChangeFilters<unknown>; // never update any subscribed components
-			defaultSubscribeFilters: GlobalStateChangeFilters<unknown>; // default for subscribeToChanges when using useGlobalState()
-			defaultUpdateFilters: GlobalStateChangeFilters<unknown>; // default for updateStates when using setGlobalState()
-		};
-	};
-
 	DI: ReactSimpleStateDependencyInjection;
+
+	DEFAULTS: {
+		// if specified deepCopyObject() will be called for the existing state in setGlobalState() and initGlobalState()
+		immutableSetState: boolean;
+	};
 }
 
-export type StateSetter<State> = (
-	state: ValueOrCallbackWithArgs<State | undefined, Partial<State>>,
-	options?: SetStateOptions<State>
-) => State;
+export type StateSetter<State> = (state: ValueOrCallbackWithArgs<State, Partial<State>>, options?: SetStateOptions<State>) => State;
+export type StateMerger<State> = (oldState: State, newState: Partial<State>) => State;
 
-export type StateReturn<State> = [State, StateSetter<State>];
+export type StateReturn<State, TStateSetter = StateSetter<State>> = [State, TStateSetter];
 
 export interface InitStateOptions<State> {
-	// default is REACT_SIMPLE_STATE.DEFAULTS.changeFilters.defaultUpdateFilters
-	readonly updateState?: GlobalStateChangeFilters<State>;
+	// if specified deepCopyObject() will be called for the existing state
+	// default value is REACT_SIMPLE_STATE.DEFAULTS.immutableSetState
+	readonly immutableUpdate?: boolean; 
+	readonly updateState?: GlobalStateUpdateConditions<State>;
 }
 
 export interface SetStateOptions<State> extends InitStateOptions<State>  {
-	readonly mergeState?: (oldState: State, newState: Partial<State>) => State;
+	readonly mergeState?: StateMerger<State>;
 }
 
 export interface RemoveStateOptions {

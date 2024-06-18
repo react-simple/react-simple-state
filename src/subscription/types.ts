@@ -6,14 +6,10 @@ export interface GlobalStateChangeArgs<State> {
 	newState: State;
 }
 
-export interface GlobalStateConditionalChangeFilter<State> {
-	readonly condition: (changeArgs: GlobalStateChangeArgs<State>) => boolean;
-}
-
-export type GlobalStateChangeFilter<State> =
+export type GlobalStateUpdateCondition<State> =
 	| true // always
 	| false // never
-	| GlobalStateConditionalChangeFilter<State>;
+	| ((changeArgs: GlobalStateChangeArgs<State>) => boolean);
 
 // Instead of a flat list we build a hieararchy of subscriptions following the full qualified path 
 // using setChildMemberValue() from react-simple-mapping
@@ -27,18 +23,22 @@ export interface GlobalStateSubscription<State> {
 	readonly fullQualifiedName: string;
 
 	// true to get all update, false to get no updates, function to get updates selectively
-	readonly subscribedState: GlobalStateChangeFilters<State>;
+	readonly subscribedState: GlobalStateUpdateConditions<State>;
 
 	readonly onUpdate: (
 		changeArgs: GlobalStateChangeArgs<State>, // the change state
 		triggerFullQualifiedName: string // we can subscribe to parent and child state changes; this is the point of subscription
 	) => void;
+
+	readonly onUpdateSkipped?: (
+		changeArgs: GlobalStateChangeArgs<State>, // the change state
+		triggerFullQualifiedName: string // we can subscribe to parent and child state changes; this is the point of subscription
+	) => void;
 }
 	
-// default is REACT_SIMPLE_STATE.DEFAULTS.changeFilters.defaultUpdateFilters for initGlobalState() and setGlobalState() and
-// REACT_SIMPLE_STATE.DEFAULTS.changeFilters.defaultSubscribeFilters for subscribeToGlobalState() or useGlobalState()
-export interface GlobalStateChangeFilters<State> {
-	readonly thisState?: GlobalStateChangeFilter<State>; // required, but if not, then default is 'true' meaning "always"
-	readonly parentState?: GlobalStateChangeFilter<State>; // default is 'false' meaning "never" when updating and "always" when subscribing
-	readonly childState?: GlobalStateChangeFilter<State>; // default is "always" when updating and "never" when subscribing
+export interface GlobalStateUpdateConditions<State> {
+	readonly thisState?: boolean; // default is true
+	readonly parentState?: boolean; // default is true
+	readonly childState?: boolean; // default is true
+	readonly condition?: GlobalStateUpdateCondition<State>;
 }

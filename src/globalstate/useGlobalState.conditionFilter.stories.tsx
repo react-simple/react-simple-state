@@ -1,16 +1,18 @@
 import * as React from "react";
+import { useEffect } from 'react';
 import type { Meta } from '@storybook/react';
-import { useGlobalState } from './useGlobalState';
 import { LOG_LEVELS, LogLevel, StorybookComponent, logInfo } from '@react-simple/react-simple-util';
 import { Stack, Cluster, ObjectRenderer } from '@react-simple/react-simple-ui';
-import { getGlobalStateOrEmpty, initGlobalState, removeGlobalState } from './functions';
-import { useEffect } from 'react';
+import { useGlobalState } from './useGlobalState';
+import { getGlobalState, initGlobalState, removeGlobalState } from './functions';
 import { REACT_SIMPLE_STATE } from "data";
+import { useGlobalStateBatch } from "./useGlobalStateBatch";
 
-const TITLE = "Global state / Simple global state";
+const TITLE = "Global state / Condition filter";
 const DESC = <>
-	The form state is global. When field values change <strong>all components</strong> get updated.
-	The <strong>useGlobalState()</strong> hook is used. See console log for details.
+	The form state is global, but when field values change <strong>only the affected components</strong> get updated.{" "}
+	This is achieved by specifying <strong>subscribedState.condition()</strong> to compare field values (<em>oldState</em> vs <em>newState</em>).{" "}
+	The <strong>useGlobalStateBatch()</strong> hook is used. See console log for details.
 </>;
 
 type FormState = Record<string, string>;
@@ -26,10 +28,26 @@ const ChildComponent = (props: {
 	const [formValues, setFormValues] = useGlobalState<FormState>({
 		fullQualifiedName: "form_values",
 		defaultState: DEFAULT_FORM_STATE,
+		subscribedState: {
+			condition: ({ oldState, newState }) => {
+				const result = fieldNames.some(t => oldState?.[t] !== newState[t]);
+
+				logInfo(
+					`[${scope}]: updateFilter -> ${result}`,
+					{ fieldNames, oldState, newState, result },
+					REACT_SIMPLE_STATE.LOGGING.logLevel);
+
+				return result;
+			}
+		},
 		subscriberId: scope
 	});
 
-	logInfo(`[${scope}]: render`, { props, formValues }, REACT_SIMPLE_STATE.LOGGING.logLevel);
+	logInfo(
+		`[${scope}]: render`,
+		{ props, formValues },
+		REACT_SIMPLE_STATE.LOGGING.logLevel
+	);
 
 	return (
 		<Stack>
@@ -44,7 +62,7 @@ const ChildComponent = (props: {
 						id={fieldName}
 						name={fieldName}
 						value={formValues[fieldName] || ""} // controlled input
-						onChange={evt => setFormValues({ [fieldName]: evt.target.value })}
+						onChange={evt => setFormValues({ [fieldName]: evt.target.value })} // it's important that we only pass the values changed
 					/>
 
 					<div>Updated: {new Date().toLocaleTimeString()}</div>
@@ -57,18 +75,17 @@ const ChildComponent = (props: {
 const Summary = () => {
 	const scope = "Summary";
 
-	// get this component updated if anything changes in global state
-	const [globalState] = useGlobalState<{ form_values: FormState }>({
-		fullQualifiedName: "", // root
-		defaultState: { form_values: {} },
+	const [{ formValues, globalState }] = useGlobalStateBatch({
+		fullQualifiedNames: {
+			formValues: "form_values",
+			globalState: ""
+		},
 		subscriberId: scope
 	});
 
-	const formValues = globalState.form_values;
-
 	logInfo(
 		`[${scope}]: render`,
-		{ formValues, globalState, subscriptions: REACT_SIMPLE_STATE.ROOT_STATE.subscriptions },
+		{ formValues, globalState },
 		REACT_SIMPLE_STATE.LOGGING.logLevel
 	);
 
@@ -76,7 +93,6 @@ const Summary = () => {
 		<Stack>
 			<h2>Summary</h2>
 			<ObjectRenderer obj={{ formValues, globalState }} />
-			<div>Updated: {new Date().toLocaleTimeString()}</div>
 		</Stack>
 	);
 };
@@ -95,7 +111,7 @@ const Component = (props: ComponentProps) => {
 	useEffect(
 		() => {
 			// Initialize
-			initGlobalState("form_values", DEFAULT_FORM_STATE, { immutableUpdate: true });
+			initGlobalState("form_values", DEFAULT_FORM_STATE);
 
 			return () => {
 				// Finalize
@@ -113,7 +129,7 @@ const Component = (props: ComponentProps) => {
 					onClick={() => initGlobalState("form_values", DEFAULT_FORM_STATE)} />
 
 				<input type="button" value="Trace root state" style={{ padding: "0.5em 1em" }}
-					onClick={() => console.log("state", getGlobalStateOrEmpty(""))} />
+					onClick={() => console.log("state", getGlobalState("", {}))} />
 
 				<input type="button" value="Trace subscriptions" style={{ padding: "0.5em 1em" }}
 					onClick={() => console.log("subscriptions", REACT_SIMPLE_STATE.ROOT_STATE.subscriptions)} />

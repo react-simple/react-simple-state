@@ -1,11 +1,12 @@
 import { useEffect } from "react";
 import {
-	ValueOrCallback, ValueOrCallbackWithArgs, getResolvedCallbackValue, getResolvedCallbackValueWithArgs, logTrace, stringAppend, useForceUpdate, useUniqueId
+	ValueOrCallback, ValueOrCallbackWithArgs, getResolvedCallbackValue, getResolvedCallbackValueWithArgs, logTrace, stringAppend,
+	useForceUpdate, useUniqueId
  } from "@react-simple/react-simple-util";
 import { getGlobalState, setGlobalState } from "./functions";
-import { SetStateOptions, StateReturn } from "types";
+import { GlobalStateRoot, SetStateOptions, StateMerger, StateReturn } from "types";
 import { REACT_SIMPLE_STATE } from "data";
-import { GlobalStateChangeFilters, subscribeToGlobalState, unsubscribeFromGlobalState } from "subscription";
+import { GlobalStateChangeArgs, GlobalStateUpdateConditions, subscribeToGlobalState, unsubscribeFromGlobalState } from "subscription";
 import { useGlobalStateContext } from "./context";
 
 // By calling useGlobalState() the parent component subscribes to state changes according to the specified updateFilter value.
@@ -13,51 +14,60 @@ import { useGlobalStateContext } from "./context";
 
 export interface UseGlobalStateProps<State> {
 	fullQualifiedName: string;
-	defaultValue: ValueOrCallback<State>;
+	defaultState: ValueOrCallback<State>;
 
-	// default is REACT_SIMPLE_STATE.ROOT_STATE.defaults.changeFilters.defaultSubscribeFilters
-	subscribedState?: GlobalStateChangeFilters<State>;  
+	// default is unconditional true for all (this, parents, children)
+	subscribedState?: GlobalStateUpdateConditions<State>;  
 
 	// optional
 	subscriberId?: string; // custom metadata for tracing info only
 
 	// custom merge function, if not specified shallow object merge is used using the spread operator (root members are merged)
-	merge?: (oldState: State, newState: Partial<State>) => State;
+	mergeState?: StateMerger<State>;
 
 	ignoreContexts?: boolean; // by default <StateContext> components are used to prefix the fullQualifiedName, but it can be disabled
 	contextId?: string; // instead of using the closest React context of StateContext, the exact instance can be specified
 
 	enabled?: boolean; // Default is true. If false, then no subscription will happen.
+	globalStateRoot?: GlobalStateRoot<unknown>; // default is REACT_SIMPLE_STATE.ROOT_STATE
+
+	onUpdate?: (changeArgs: GlobalStateChangeArgs<State>, triggerFullQualifiedName: string) => void;
+	onUpdateSkipped?: (changeArgs: GlobalStateChangeArgs<State>, triggerFullQualifiedName: string) => void;
 }
 
 export function useGlobalState<State>(props: UseGlobalStateProps<State>): StateReturn<State> {
-	const { subscribedState, subscriberId, ignoreContexts, contextId, enabled = true } = props;
+	const { subscribedState, subscriberId, ignoreContexts, contextId, enabled = true, globalStateRoot } = props;
 
 	const uniqueId = useUniqueId({ prefix: subscriberId }); // generate permanent uniqueId for this hook instance
 	const forceUpdate = useForceUpdate();
 
 	const context = useGlobalStateContext(contextId);
 	
-	const fullQualifiedName = context && !ignoreContexts
-		? stringAppend(context?.fullQualifiedName, props.fullQualifiedName, ".")
+	const fullQualifiedName = context.fullQualifiedNamePrefix && !ignoreContexts
+		? stringAppend(context?.fullQualifiedNamePrefix, props.fullQualifiedName, ".")
 		: props.fullQualifiedName;
 
 	// get current state
-	const defaultValue = getResolvedCallbackValue(props.defaultValue);
-	const currentState = getGlobalState(fullQualifiedName, defaultValue);
+	const defaultValue = getResolvedCallbackValue(props.defaultState);
+	const currentState = getGlobalState(fullQualifiedName, defaultValue, globalStateRoot);
 
 	// local function called by other hooks via subscription on state changes to update this hook and its parent component
-	const onUpdate = () => {
+	const onUpdate = (changeArgs: GlobalStateChangeArgs<State>, triggerFullQualifiedName: string) => {
 		logTrace(log => log(
-			`[useGlobaState]: onUpdate fullQualifiedName=${fullQualifiedName}`,
+			`[useGlobalState]: onUpdate fullQualifiedName=${fullQualifiedName}`,
 			{ props, uniqueId, currentState }
 		), REACT_SIMPLE_STATE.LOGGING.logLevel);
 		
 		forceUpdate();
+		props.onUpdate?.(changeArgs, triggerFullQualifiedName);
+	};
+
+	const onUpdateSkipped = (changeArgs: GlobalStateChangeArgs<State>, triggerFullQualifiedName: string) => {
+		props.onUpdateSkipped?.(changeArgs, triggerFullQualifiedName);
 	};
 
 	logTrace(log => log(
-		`[useGlobaState]: Rendering fullQualifiedName=${fullQualifiedName}`,
+		`[useGlobalState]: Rendering fullQualifiedName=${fullQualifiedName}`,
 		{ props, uniqueId, currentState }
 	), REACT_SIMPLE_STATE.LOGGING.logLevel);
 
@@ -66,29 +76,32 @@ export function useGlobalState<State>(props: UseGlobalStateProps<State>): StateR
 		() => {
 			// Initialize			
 			if (enabled) {
-				subscribeToGlobalState(uniqueId, { fullQualifiedName, subscribedState, onUpdate });
+				subscribeToGlobalState(
+					uniqueId,
+					{ fullQualifiedName, subscribedState, onUpdate, onUpdateSkipped },
+					globalStateRoot);
 			}
 
 			logTrace(log => log(
-				`[useGlobaState]: Initialized fullQualifiedName=${fullQualifiedName}`,
+				`[useGlobalState]: Initialized fullQualifiedName=${fullQualifiedName}`,
 				{ props, uniqueId, stateValue: currentState }
 			), REACT_SIMPLE_STATE.LOGGING.logLevel);
 			
 			return () => {				
 				// Finalize
 				if (enabled) {
-					unsubscribeFromGlobalState(uniqueId, fullQualifiedName);
+					unsubscribeFromGlobalState(uniqueId, fullQualifiedName, globalStateRoot);
 				}
 			}
 		},
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-		[fullQualifiedName, enabled, subscriberId]);
+		[fullQualifiedName, enabled, subscriberId, globalStateRoot]);
 	
 	const setState = (
 		newState: ValueOrCallbackWithArgs<State, Partial<State>>,
 		options?: SetStateOptions<State>
 	) => {
-		const mergeState = options?.mergeState || props.merge || ((t1, t2) => ({ ...t1, ...t2 }));
+		const mergeState = options?.mergeState || props.mergeState || ((t1, t2) => ({ ...t1, ...t2 }));
 
 		return setGlobalState<State>(
 			fullQualifiedName,
@@ -99,7 +112,8 @@ export function useGlobalState<State>(props: UseGlobalStateProps<State>): StateR
 			{
 				...options,
 				mergeState
-			}
+			},
+			globalStateRoot
 		);
 	};
 

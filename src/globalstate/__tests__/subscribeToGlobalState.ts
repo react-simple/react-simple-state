@@ -1,5 +1,4 @@
-import { newGuid, sameObjects } from "@react-simple/react-simple-util";
-import exp from "constants";
+import { newGuid } from "@react-simple/react-simple-util";
 import { REACT_SIMPLE_STATE } from "data";
 import { resetGlobalState } from "functions";
 import { getGlobalStateSubscriptions, subscribeToGlobalState } from "subscription";
@@ -19,7 +18,6 @@ it('subscribeToGlobalState.rootState', () => {
 
   expect(subscription).toBeDefined();
   expect(subscription.fullQualifiedName).toBe("");
-  expect(sameObjects(subscription.subscribedState, REACT_SIMPLE_STATE.DEFAULTS.changeFilters.defaultSubscribeFilters)).toBe(true);
   expect(subscription.onUpdate).toBe(onUpdate);
 });
 
@@ -45,6 +43,5 @@ it('subscribeToGlobalState.childState', () => {
 
   expect(subscription).toBeDefined();
   expect(subscription.fullQualifiedName).toBe("a.b.c");
-  expect(sameObjects(subscription.subscribedState, REACT_SIMPLE_STATE.DEFAULTS.changeFilters.defaultSubscribeFilters)).toBe(true);
   expect(subscription.onUpdate).toBe(onUpdate);
 });

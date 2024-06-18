@@ -18,7 +18,7 @@ export const REACT_SIMPLE_STATE: ReactSimpleState = {
 			subscribeToGlobalState: stub,
 			unsubscribeFromGlobalState: stub,
 			globalStateUpdateSubscribedComponents: stub,
-			evaluateGlobalStateComponentChangeTrigger: stub
+			evaluateGlobalStateUpdateCondition: stub
 		},
 
 		globalState: {
@@ -34,34 +34,6 @@ export const REACT_SIMPLE_STATE: ReactSimpleState = {
 	CONTEXTS: {},
 
 	DEFAULTS: {
-		changeFilters: {
-			always: {
-				thisState: true,
-				parentState: true,
-				childState: true
-			},
-
-			never: {
-				thisState: false,
-				parentState: false,
-				childState: false
-			},
-
-			// subscribe to changes of this member and any parent members in the global state tree by default
-			defaultSubscribeFilters: {
-				thisState: true,
-				parentState: true,
-				childState: true
-			},
-
-			// update components subscribed to this state and any child or parents states in the global state tree by default
-			// (in other words, it's always the subscribers how control the update logic, setGlobalState() will trigger all parent/children)
-			defaultUpdateFilters: {
-				thisState: true,
-				parentState: true,
-				childState: true
-			}
-		}
+		immutableSetState: true
 	}
-
 };

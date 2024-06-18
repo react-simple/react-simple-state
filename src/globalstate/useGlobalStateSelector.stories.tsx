@@ -3,78 +3,93 @@ import { useEffect } from 'react';
 import type { Meta } from '@storybook/react';
 import { LOG_LEVELS, LogLevel, StorybookComponent, logInfo } from '@react-simple/react-simple-util';
 import { Stack, Cluster, ObjectRenderer } from '@react-simple/react-simple-ui';
-import { useGlobalState } from './useGlobalState';
 import { getGlobalState, initGlobalState, removeGlobalState } from './functions';
 import { REACT_SIMPLE_STATE } from "data";
 import { useGlobalStateBatch } from "./useGlobalStateBatch";
+import { useGlobalStateReadOnlySelector, useGlobalStateSelector } from "./useGlobalStateSelector";
 
-const TITLE = "Global state / Update filter";
+const TITLE = "Global state / Selector filter";
 const DESC = <>
-	The form state is global. When field values change <strong>only the affected components</strong> get updated.
-	The <strong>useGlobalStateBatch()</strong> hook is used. See console log for details.
+	The form state is global, but when field values change <strong>only the affected components</strong> get updated.{" "}
+	This is achieved by using the <strong>useGlobalStateSelector()</strong> hook and specifying the <strong>getValue()</strong> selector,{" "}
+	which is automatically used to filter updates by comparing values (current vs previous).
 </>;
 
 type FormState = Record<string, string>;
 const DEFAULT_FORM_STATE: FormState = {};
 
-const ChildComponent = (props: {
+const InputComponent = (props: {
 	title: string;
-	fieldNames: string[];
+	fieldName: string;
 }) => {
-	const { title, fieldNames } = props;
-	const scope = `ChildComponent[title=${title}]`;
+	const { title, fieldName } = props;
+	const scope = `InputComponent[title=${title}]`;
 
-	const [formValues, setFormValues] = useGlobalState<FormState>({
-		fullQualifiedName: "form_values",
-		defaultValue: DEFAULT_FORM_STATE,
-		subscribedState: {
-			thisState: {
-				condition: ({ oldState, newState }) => {
-					const result = fieldNames.some(t => oldState?.[t] !== newState[t]);
-
-					logInfo(
-						`[${scope}]: updateFilter -> ${result}`,
-						{ fieldNames, oldState, newState, result },
-						REACT_SIMPLE_STATE.LOGGING.logLevel);
-					
-					return result;
-				}
-			}
-		},
+	const [fieldValue, setFieldValue] = useGlobalStateSelector<FormState, string>({
+		fullQualifiedName: "form_values", // base state object for the selectors
+		defaultState: DEFAULT_FORM_STATE,
+		getValue: state => state[fieldName],
+		setValue: value => ({ [fieldName]: value }),
 		subscriberId: scope
 	});
 
 	logInfo(
 		`[${scope}]: render`,
-		{ props, formValues },
+		{ props, formValues: fieldValue },
 		REACT_SIMPLE_STATE.LOGGING.logLevel
 	);
 
 	return (
-		<Stack>
-			<h3>{title}</h3>
+		<Cluster key={fieldName}>
+			<label htmlFor={fieldName}>{fieldName}:</label>
 
-			{fieldNames.map(fieldName => (
-				<Cluster key={fieldName}>
-					<label htmlFor={fieldName}>{fieldName}:</label>
+			<input
+				type="text"
+				id={fieldName}
+				name={fieldName}
+				value={fieldValue || ""} // controlled input
+				onChange={evt => setFieldValue(evt.target.value)}
+			/>
 
-					<input
-						type="text"
-						id={fieldName}
-						name={fieldName}
-						value={formValues[fieldName] || ""} // controlled input
-						onChange={evt => setFormValues({ [fieldName]: evt.target.value })} // it's important that we only pass the values changed
-					/>
-				</Cluster>
-			))}
-		</Stack>
+			<div>Updated: {new Date().toLocaleTimeString()}</div>
+		</Cluster>
+	);
+};
+
+const ReadOnlyComponent = (props: {
+	title: string;
+	fieldName: string;
+}) => {
+	const { title, fieldName } = props;
+	const scope = `ReadOnlyComponent[title=${title}]`;
+
+	const fieldValue = useGlobalStateReadOnlySelector<FormState, string>({
+		fullQualifiedName: "form_values", // base object for the selectors
+		defaultState: DEFAULT_FORM_STATE,
+		getValue: state => state[fieldName],
+		subscriberId: scope,
+		onUpdateSkipped: () => console.log(`[${scope}]: Update skipped`)
+	});
+
+	logInfo(
+		`[${scope}]: render`,
+		{ props, formValues: fieldValue },
+		REACT_SIMPLE_STATE.LOGGING.logLevel
+	);
+
+	return (
+		<Cluster key={fieldName}>
+			<label htmlFor={fieldName}>{fieldName}:</label>
+			<input type="text" id={fieldName} name={fieldName} readOnly value={fieldValue || ""} />
+			<div>Updated: {new Date().toLocaleTimeString()}</div>
+		</Cluster>
 	);
 };
 
 const Summary = () => {
 	const scope = "Summary";
 
-	const [{formValues,globalState}] = useGlobalStateBatch({
+	const [{ formValues, globalState }] = useGlobalStateBatch({
 		fullQualifiedNames: {
 			formValues: "form_values",
 			globalState: ""
@@ -134,9 +149,15 @@ const Component = (props: ComponentProps) => {
 					onClick={() => console.log("subscriptions", REACT_SIMPLE_STATE.ROOT_STATE.subscriptions)} />
 			</Cluster>
 
-			<ChildComponent title="Component 1" fieldNames={["field_a", "field_b"]} />
-			<ChildComponent title="Component 2" fieldNames={["field_b", "field_c"]} />
-			<ChildComponent title="Component 3" fieldNames={["field_a", "field_b", "field_c", "field_d"]} />
+			<h2>Editable inputs</h2>
+			<InputComponent title="Field 1" fieldName="field_a" />
+			<InputComponent title="Field 2" fieldName="field_b" />
+			<InputComponent title="Field 3" fieldName="field_c" />
+
+			<h2>Read-only inputs</h2>
+			<ReadOnlyComponent title="Field 1" fieldName="field_a" />
+			<ReadOnlyComponent title="Field 2" fieldName="field_b" />
+			<ReadOnlyComponent title="Field 3" fieldName="field_c" />
 
 			<Summary />
 		</Stack>
@@ -148,7 +169,7 @@ const Template: SC = args => <Component {...args} />;
 
 export const Default: SC = Template.bind({});
 
-const meta: Meta<typeof useGlobalState> = {
+const meta: Meta<typeof useGlobalStateSelector> = {
 	component: Component,
 	title: TITLE,
 	args: {

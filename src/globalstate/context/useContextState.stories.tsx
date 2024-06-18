@@ -12,8 +12,8 @@ import { getGlobalStateContextDataAll } from "./functions";
 
 const TITLE = "Context state / Multiple contexts";
 const DESC = <>
-  Components can have their own &lt;StateContext&gt; scopes which separate their states by prefixing the state path used in 
-  <strong>useGlobalState()</strong>.
+	Components can have their own &lt;StateContext&gt; scopes which separate their states by prefixing the state path used in{" "}
+	<strong>useGlobalState()</strong>. &lt;StateContext&gt;-s can be embedded.
 </>;
 
 type FormState = Record<string, string>;
@@ -29,7 +29,7 @@ const ChildComponent = (props: {
 
 	const [formValues, setFormValues] = useGlobalState<FormState>({
 		fullQualifiedName: "form_values", // this path will be prefixed with the path coming from the context
-		defaultValue: DEFAULT_FORM_STATE,
+		defaultState: DEFAULT_FORM_STATE,
 		subscriberId: scope
 	});
 
@@ -50,6 +50,8 @@ const ChildComponent = (props: {
 						value={formValues[fieldName] || ""} // controlled input
 						onChange={evt => setFormValues({ [fieldName]: evt.target.value })}
 					/>
+
+					<div>Updated: {new Date().toLocaleTimeString()}</div>
 				</Cluster>
 			))}
 		</Stack>
@@ -58,12 +60,12 @@ const ChildComponent = (props: {
 
 const ContextSummary = ({ title }: { title: string; }) => {
 	const context = useGlobalStateContext();
-	const scope = `Context Summary ${context?.contextId}`;
+	const scope = `Context Summary ${context.contextId}`;
 
 	// this is not root the state, we are within a context, so the fullQualifiedName of the context is used as a prefix
 	const [contextValues] = useGlobalState({
     fullQualifiedName: "",
-    defaultValue: {},
+    defaultState: {},
 		subscriberId: scope
 	});
 
@@ -72,7 +74,8 @@ const ContextSummary = ({ title }: { title: string; }) => {
   return (
     <Stack>
       <h4>{title}</h4>
-      <ObjectRenderer obj={{ contextValues }} />
+			<ObjectRenderer obj={{ contextValues }} />
+			<div>Updated: {new Date().toLocaleTimeString()}</div>
     </Stack>
   );
 };
@@ -85,7 +88,7 @@ const Summary = () => {
 	// At first render we won't have any since contexts register themselves during render, so in that case we subscribe
 	// to the root state; so this component will be updated on any changes and re-subscribe itself to the contexts' path.
 	const [allContextStates] = useGlobalStateBatch<FormState>({
-		fullQualifiedNames: contexts.length ? contexts.map(t => t.fullQualifiedName) : [""],
+		fullQualifiedNames: contexts.length ? contexts.map(t => t.fullQualifiedNamePrefix) : [""],
 		subscriberId: "Summary"
 	});
 
@@ -120,11 +123,12 @@ const Component = (props: ComponentProps) => {
 	useEffect(
 		() => {
 			// Initialize
-      initGlobalState("form_values", DEFAULT_FORM_STATE);
+			initGlobalState("context_1", DEFAULT_FORM_STATE);
+			initGlobalState("context_2", DEFAULT_FORM_STATE);
 
 			return () => {
 				// Finalize
-        removeGlobalState("form_values");
+				removeGlobalState(["context_1", "context_2"]);
 			};
 		},
 		[]);
@@ -141,14 +145,17 @@ const Component = (props: ComponentProps) => {
 				
 				<input type="button" value="Trace subscriptions" style={{ padding: "0.5em 1em" }}
 					onClick={() => console.log("subscriptions", REACT_SIMPLE_STATE.ROOT_STATE.subscriptions)} />
+
+				<input type="button" value="Trace contexts" style={{ padding: "0.5em 1em" }}
+					onClick={() => console.log("contexts", REACT_SIMPLE_STATE.CONTEXTS)} />
 			</Cluster>
 
-			<StateContext contextId="context_1" fullQualifiedName="context_1">
+			<StateContext contextId="context_1" fullQualifiedNamePrefix="context_1">
 				<h3>Context 1</h3>
 
 				<Cluster>
-          <input type="button" value="Reset state" style={{ padding: "0.5em 1em" }}
-            onClick={() => initGlobalState("context_1", DEFAULT_FORM_STATE)} />
+					<input type="button" value="Reset state" style={{ padding: "0.5em 1em" }}
+						onClick={() => initGlobalState("context_1", DEFAULT_FORM_STATE)} />
 				</Cluster>
 
 				<ChildComponent title="Component 1" fieldNames={["field_a", "field_b"]} />
@@ -156,16 +163,20 @@ const Component = (props: ComponentProps) => {
 				<ContextSummary title="Context 1 Summary" />
 			</StateContext>
 
-			<StateContext contextId="context_2" fullQualifiedName="context_2">
+			<StateContext contextId="context_2" fullQualifiedNamePrefix="context_2">
 				<h3>Context 2</h3>
 
-				<Cluster>
-					<input type="button" value="Reset state" style={{ padding: "0.5em 1em" }}
-            onClick={() => initGlobalState("context_2", DEFAULT_FORM_STATE)}/>
-				</Cluster>
+				<StateContext contextId="context_2-2" fullQualifiedNamePrefix="context_2-2">
+					<h3>Context 2.2</h3>
+					<Cluster>
+						<input type="button" value="Reset state" style={{ padding: "0.5em 1em" }}
+							onClick={() => initGlobalState("context_2.context_2-2", DEFAULT_FORM_STATE)} />
+					</Cluster>
 
-				<ChildComponent title="Component 3" fieldNames={["field_a", "field_b", "field_c", "field_d"]} />
-        <ContextSummary title="Context 2 Summary" />
+					<ChildComponent title="Component 3" fieldNames={["field_a", "field_b", "field_c", "field_d"]} />
+					<ContextSummary title="Context 2.2 Summary" />
+				</StateContext>
+				<ContextSummary title="Context 2 Summary" />
 			</StateContext>
 
 			<Summary />

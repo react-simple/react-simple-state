@@ -1,5 +1,6 @@
 import {
-	ValueOrCallback, ValueOrCallbackWithArgs, getResolvedArray, getResolvedCallbackValue, getResolvedCallbackValueWithArgs, logTrace
+	ValueOrCallback, ValueOrCallbackWithArgs, deepCopyObject, getResolvedArray, getResolvedCallbackValue, getResolvedCallbackValueWithArgs,
+	logTrace, resolveEmpty
 } from "@react-simple/react-simple-util";
 import { REACT_SIMPLE_STATE } from "data";
 import { GlobalStateRoot, InitStateOptions, RemoveStateOptions, SetStateOptions } from "types";
@@ -23,7 +24,7 @@ REACT_SIMPLE_STATE.DI.globalState.getGlobalStateOrEmpty = getGlobalStateOrEmpty_
 // Use the useGlobalState() hook to get the parent component/hook updated on state changes.
 export function getGlobalStateOrEmpty<State>(
 	fullQualifiedName: string,
-	globalStateRoot?: GlobalStateRoot<unknown>
+	globalStateRoot?: GlobalStateRoot<unknown> // default is REACT_SIMPLE_STATE.ROOT_STATE
 ): State | undefined {
 	// get current state or default state
 	return REACT_SIMPLE_STATE.DI.globalState.getGlobalStateOrEmpty<State>(
@@ -37,11 +38,11 @@ export function getGlobalStateOrEmpty<State>(
 // Use the useGlobalState() hook to get the parent component/hook updated on state changes.
 function getGlobalState_default<State>(
 	fullQualifiedName: string,
-	defaultValue: ValueOrCallback<State>,
+	defaultState: ValueOrCallback<State>,
 	globalStateRoot: GlobalStateRoot<unknown>
 ): State {
 	// get current state or default state
-	return getGlobalStateOrEmpty<State>(fullQualifiedName, globalStateRoot) || getResolvedCallbackValue(defaultValue);
+	return getGlobalStateOrEmpty<State>(fullQualifiedName, globalStateRoot) || getResolvedCallbackValue(defaultState);
 }
 
 REACT_SIMPLE_STATE.DI.globalState.getGlobalState = getGlobalState_default;
@@ -50,13 +51,13 @@ REACT_SIMPLE_STATE.DI.globalState.getGlobalState = getGlobalState_default;
 // Use the useGlobalState() hook to get the parent component/hook updated on state changes.
 export function getGlobalState<State>(
 	fullQualifiedName: string,
-	defaultValue: ValueOrCallback<State>,
-	globalStateRoot?: GlobalStateRoot<unknown>
+	defaultState: ValueOrCallback<State>,
+	globalStateRoot?: GlobalStateRoot<unknown> // default is REACT_SIMPLE_STATE.ROOT_STATE
 ): State {
 	// get current state or default state
 	return REACT_SIMPLE_STATE.DI.globalState.getGlobalState<State>(
 		fullQualifiedName,
-		defaultValue,
+		defaultState,
 		globalStateRoot || REACT_SIMPLE_STATE.ROOT_STATE,
 		getGlobalState_default
 	);
@@ -69,15 +70,21 @@ const setGlobalState_default = <State>(
 	options: SetStateOptions<State>,
 	globalStateRoot: GlobalStateRoot<unknown>
 ) => {
+	const immutableSetState = resolveEmpty(options.immutableUpdate, REACT_SIMPLE_STATE.DEFAULTS.immutableSetState);
+
 	// get current state, calculate new state
 	const oldState = getGlobalStateOrEmpty<State>(fullQualifiedName, globalStateRoot);
 	const stateToSet = getResolvedCallbackValueWithArgs(state, oldState);
 
-	const newState = (
+	let newState = (
 		!oldState ? stateToSet :
 			options?.mergeState ? options.mergeState(oldState, stateToSet) :
 				{ ...oldState, ...stateToSet }
 	);
+
+	if (resolveEmpty(options.immutableUpdate, REACT_SIMPLE_STATE.DEFAULTS.immutableSetState)) {
+		newState = deepCopyObject(newState as object) as State;
+	}
 
 	// set new state
 	if (!fullQualifiedName) {
@@ -103,18 +110,12 @@ export const setGlobalState = <State>(
 	fullQualifiedName: string,
 	state: ValueOrCallbackWithArgs<State | undefined, State>,
 	options?: SetStateOptions<State>,
-	globalStateRoot?: GlobalStateRoot<unknown>
+	globalStateRoot?: GlobalStateRoot<unknown> // default is REACT_SIMPLE_STATE.ROOT_STATE
 ) => {
 	return REACT_SIMPLE_STATE.DI.globalState.setGlobalState(
 		fullQualifiedName,
 		state,
-		{
-			...options,
-			updateState: {
-				...REACT_SIMPLE_STATE.DEFAULTS.changeFilters.defaultUpdateFilters,
-				...options?.updateState
-			}
-		},
+		options || {},
 		globalStateRoot || REACT_SIMPLE_STATE.ROOT_STATE,
 		setGlobalState_default
 	);
@@ -129,7 +130,11 @@ const initGlobalState_default = <State>(
 ) => {
 	// get current state, calculate new state
 	const oldState = getGlobalStateOrEmpty<State>(fullQualifiedName, globalStateRoot);
-	const newState = getResolvedCallbackValue(state); // no merging, it's a complete state
+	let newState = getResolvedCallbackValue(state); // no merging, it's a complete state
+
+	if (resolveEmpty(options.immutableUpdate, REACT_SIMPLE_STATE.DEFAULTS.immutableSetState)) {
+		newState = deepCopyObject(newState as object) as State;
+	}
 
 	// set new state
 	if (!fullQualifiedName) {
@@ -155,18 +160,12 @@ export const initGlobalState = <State>(
 	fullQualifiedName: string,
 	state: ValueOrCallback<State>,
 	options?: InitStateOptions<State>,
-	globalStateRoot?: GlobalStateRoot<unknown>
+	globalStateRoot?: GlobalStateRoot<unknown> // default is REACT_SIMPLE_STATE.ROOT_STATE
 ) => {
 	return REACT_SIMPLE_STATE.DI.globalState.initGlobalState(
 		fullQualifiedName,
 		state,
-		{
-			...options,
-			updateState: {
-				...REACT_SIMPLE_STATE.DEFAULTS.changeFilters.defaultUpdateFilters,
-				...options?.updateState
-			}
-		},
+		options || {},
 		globalStateRoot || REACT_SIMPLE_STATE.ROOT_STATE,
 		initGlobalState_default
 	);
@@ -177,19 +176,19 @@ export const initGlobalState = <State>(
 // Use initGlobalState() to reset the state, but keep the subscriptions.
 // (Also, unlike initContextState(), subscribers won't get notified on the state change; it's completely silent. It's for finalizers.)
 const removeGlobalState_default = (
-	statePaths: string | string[],
+	fullQualifiedNames: string | string[],
 	options: RemoveStateOptions,
 	globalStateRoot: GlobalStateRoot<unknown>
 ) => {
 	logTrace(log => log(
-		`[removeGlobalState] statePaths=[${getResolvedArray(statePaths).join(", ")}]`,
-		{ statePaths },
+		`[removeGlobalState] fullQualifiedNames=[${getResolvedArray(fullQualifiedNames).join(", ")}]`,
+		{ fullQualifiedNames },
 		REACT_SIMPLE_STATE.LOGGING.logLevel
 	));
 
 	const { removeSubscriptions, removeEmptyParents } = options;
 
-	if (statePaths === "") {
+	if (fullQualifiedNames === "") {
 		globalStateRoot.state = ROOT_STATE_DEFAULT.state;
 
 		if (removeSubscriptions) {
@@ -198,7 +197,7 @@ const removeGlobalState_default = (
 	}
 	else {
 		// notifySubscribers() is not called intentionally here
-		for (const fullQualifiedName of getResolvedArray(statePaths)) {
+		for (const fullQualifiedName of getResolvedArray(fullQualifiedNames)) {
 			if (!fullQualifiedName) {
 				globalStateRoot.state = ROOT_STATE_DEFAULT.state;
 			}
@@ -225,12 +224,12 @@ REACT_SIMPLE_STATE.DI.globalState.removeGlobalState = removeGlobalState_default;
 // Use initGlobalState() to reset the state, but keep the subscriptions.
 // (Also, unlike initContextState(), subscribers won't get notified on the state change; it's completely silent. It's for finalizers.)
 export const removeGlobalState = (
-	statePaths: string | string[],
+	fullQualifiedNames: string | string[],
 	options?: RemoveStateOptions,
-	globalStateRoot?: GlobalStateRoot<unknown>
+	globalStateRoot?: GlobalStateRoot<unknown> // default is REACT_SIMPLE_STATE.ROOT_STATE
 ) => {
 	REACT_SIMPLE_STATE.DI.globalState.removeGlobalState(
-		statePaths,
+		fullQualifiedNames,
 		options || {},
 		globalStateRoot || REACT_SIMPLE_STATE.ROOT_STATE,
 		removeGlobalState_default
