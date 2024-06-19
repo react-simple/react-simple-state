@@ -3,15 +3,15 @@ This library provides React global and context level state management hooks. Thi
 
 Global state works like React component state	except that the state is stored globally and can be shared between components. 
 - **Global state is represented by a single hierarchial JavaScript object** and components can subscribe to changes by specifying the ***fullQualifiedName*** of the state node in the shared global state object. 
-- By default subscribed components are updated if the subscribed state node or any of its parent or child state nodes get changed, but this update logic can be customized in many ways.
+- By default subscribed components are updated if the subscribed state node or any of its parent or child state nodes get changed, but the default update logic can be customized.
 - Updating subscribed components in the state tree can be controlled by using
 	- **filters**: thisState, parentState, childState (by default all are **true**)
 	- **callback functions** to decide dynamically by comparing old vs new states
 	- **selectors** to compare old vs new values
 - Update filters can be specified during subscription in the **useGlobalState()** hook for example or during state updates by calling **setState()** returned by the **useGlobalState()** hook or using plain functions like **setGlobalState()** or **initGlobalState()**.
-- Everything can be manually trigged so calling directly the **globalStateUpdateSubscribedComponents()** function is the shortest way to update subscribed components.
+- Calling directly the **globalStateUpdateSubscribedComponents()** function is the shortest way to update subscribed components.
 - Root state and subscriptions are stored in **REACT_SIMPLE_STATE.ROOT_STATE** and can be easily replaced.
-- All functions can be injected by setting a custom implementation in **REACT_SIMPLE_STATE.ID**.
+- All functions can be injected by setting a custom implementation under **REACT_SIMPLE_STATE.ID**.
 - Hooks don't contain any logic, all features are implemented in plain JavaScript functions. Hooks are just wrappers using their internal state to update their parent components and can access React contexts which features are not available for plain functions.
 - See **Storybook stories** and **unit tests** for examples.
 
@@ -22,6 +22,9 @@ npm -i @react-simple/react-simple-state
 
 ## Build
 npm run build
+
+## Run tests
+npm run test
 
 ## Run Storybook
 npm run storybook
@@ -37,21 +40,21 @@ import { ... } from "@react-simple/react-simple-state";
 
 Examples:
 - If the component is using **useGlobalState("partner.addresses[0]")** with no special ***subscribedStates*** values overriding the default update logic then any state updates to **partner, partner.addresses[0]** or **partner.addresses[0].city** will update the component.
-- Components can ignore parent or child state updates or can specify a **condition** callback function to inspect the old and new states for **dynamic selective updates**.
+- Components can ignore parent or child state updates by setting **subscribedStates.parentState** or **subscribedStates.childState** to **false** or can specify the **subscribedStates.condition(*changeArgs*)** callback function to inspect the old and new states for **dynamic selective updates**.
 - Components can also specify a **selector** in the **useGlobalStateSelector()** hook in which case updates are automatically filtered by comparing the previous and the current values of the selector.
 	- ***fullQualifiedName*** can be used to select the base state object: **"partner"**
 	- The ***getValue()*** selector can be used to return the inspected value: **t => t.addresses[0]**
-	- The component will only be updated if **partner.addresses[0]** gets updated and changed; or if any of its parents or children get updated by default (**partner**, **partner.addresses** or **partner.addresses[0].city**), if not specified otherwise.
-	- The **useGlobalStateSelector()** will return the value, not the state.
+	- The component will only be updated if **partner.addresses[0]** or if any of its parents or children get changed (**partner**, **partner.addresses** or **partner.addresses[0].city**), if not specified otherwise.
+	- The **useGlobalStateSelector()** hook will return the value, not the state.
 	- (The **useGlobalState()** hook provides more flexibility since the returned state and the inspected state for filtering updates are decoupled.)
 
-Global state is stored in **REACT_SIMPLE_STATE.ROOT_STATE** and subscriptions are stored in **REACT_SIMPLE_STATE.ROOT_STATE.subscriptions**. Subscriptions follow the hierarchical structure of the state JavaScript object and built from **GlobalStateSubscriptionEntry** objects containing **subscriptions** (at that level) and **children** (child entries).
+Global state is stored in **REACT_SIMPLE_STATE.ROOT_STATE** and subscriptions are stored in **REACT_SIMPLE_STATE.ROOT_STATE.subscriptions**. Subscriptions follow the hierarchical structure of the state JavaScript object and the hierarchy is built from **GlobalStateSubscriptionEntry** objects containing **subscriptions** (at that level) and **children** (child entries).
 
 The implementation is highly customizable with the following options:
 - **Functional programming**: Any **state management logic is accessible in plain functions** not only in hooks. The hooks just instrument these methods within components. Getting, setting, initializing state values or dealing with subscriptions directly without using hooks is possible. See unit tests for examples.
 - **Accessible state**: The **REACT_SIMPLE_STATE.ROOT_STATE** member is easily replacable.
 - **Injectable root state**: Any state management functions and hooks accept an optional ***globalStateRoot*** parameter to override using the default **REACT_SIMPLE_STATE.ROOT_STATE** member for lifetime of that call/hook.
-- **Injectable methods**: All functions are injectable with custom implementations in **REACT_SIMPLE_STATE.DI**.
+- **Injectable methods**: All functions are injectable with custom implementations under **REACT_SIMPLE_STATE.DI**.
 
 # Configuration
 ## REACT_SIMPLE_STATE
@@ -65,13 +68,13 @@ Members in the **REACT_SIMPLE_STATE** object can be set to update the behavior o
 
 ### REACT_SIMPLE_STATE.ROOT_STATE
 
-The root global state and subscriptions. By default it is used by all state functions and hooks, but 
+The root global state and subscriptions. By default it is used by all state functions and hooks.
 - It can be replaced with another object anytime.
-- All functions and hooks accept an optional ***globalStateRoot*** parameter to override the usage of this default instance.
+- All functions and hooks accept an optional ***globalStateRoot*** parameter to override the value of this default instance.
 
 ### REACT_SIMPLE_STATE.DEFAULTS
 
-- **immutableSetState**: By default any **setGlobalState()** or **initGlobalState()** calls will deep-clone the set state object, but the default value for this behavior can specified here. All methods accept an ***options.immutableSetState*** parameter to overide the usage of this default value.
+- **immutableSetState**: By default any **setGlobalState()** or **initGlobalState()** calls will deep-clone the set state object, but the default value for this behavior can specified here. All methods accept an ***options.immutableSetState*** parameter to overide the value coming from this default value.
 
 ### REACT_SIMPLE_STATE.CONTEXTS
 
@@ -93,7 +96,7 @@ The custom callback will be called with all parameters and the default implement
 - **GlobalStateRoot&lt;State&gt;**: 
 	- This is the type for the root global state. In contains the **state** (plain JavaScript object) and the **subscriptions**. 
 	- Stored in **REACT_SIMPLE_STATE.ROOT_STATE** and can be easily replaced. 
-	- All functions and hooks accept it in the optional ***globalStateRoot*** parameter to override the usage of the default ROOT_STATE.
+	- All functions and hooks accept it in the optional ***globalStateRoot*** parameter to override the value coming from the default ROOT_STATE.
 - **StateSetter&lt;State&gt;**: 
 	- Callback type returned by state hooks to set the state.
 	- It accepts a partial state object or a function getting the current state and returning the new partial state.
@@ -103,8 +106,8 @@ The custom callback will be called with all parameters and the default implement
 - **StateReturn&lt;State, StateSetter?&gt;**: State value and state setter returned by hooks.
 - **InitStateOptions&lt;State&gt;**: Options for **initGlobalState()** calls:
 	- **updateStates**: Filter to control *subscriptions of which states* should be triggered: ***thisState, parentState, childState, condition*()** callback.
-		- When a subscription is triggered the subscribed component should be updated, however, the subscribed component may have a ***subscribedState*** filter which might prevent the update.
-		- Optional. By default subscriptions of all parent and child states will be triggered, including the updated state.
+		- When subscriptions are triggered the subscribed components should be updated, however, subscribed components may have their ***subscribedState*** filter set which might prevent the updates.
+		- Optional. By default subscriptions of all parent and child states will be triggered, including the updated state with no condition.
 - **SetStateOptions&lt;State&gt;**: Options for **setGlobalState()** calls:
 	- **updateStates**: Same as for InitStateOptions
 	- **mergeState()**: Custom merge callback (optional)
@@ -120,7 +123,7 @@ The custom callback will be called with all parameters and the default implement
 		- **thisState**: Trigger the subscription when this state node was set (default is **true**)
 		- **parentState**: Trigger the subscription when a parent state node of this state node was set (default is **true**)
 		- **childState**: Trigger the subscription when a child state node of this state node was set (default is **true**)
-		- **condition(*changeArgs*)**: Callback function to dynamically evaluate.
+		- **condition(*changeArgs*)**: Callback function for dynamic evaluation.
 - **GlobalStateSubscription&lt;State&gt;**:
 	- Components can subscribe to state node changes.
 	- This type represents a subscription with the following members:
@@ -191,7 +194,8 @@ State can be read and written by using plain functions instead of hooks too. How
 
 - **useGlobalStateSelector({ *fullQualifiedName, defaultState, subscriberId?, mergeState?, ignoreContexts?, contextId?, enabled?, globalStateRoot?, onUpdate?, onUpdateSkipped?, getValue?, setValue?, objectCompareOptions? * })**: 
 	- Similar to the **useGlobalState()** hook, but a ***getValue()*** selector must be specified to return a particular member value from the state addressed by ***fullQualifiedName***.
-	- Conditionally filtering updates (***subscribedStates.condition***) is automatically implemented by comparing the value returned by the selector against its previous value, therefore it cannot be specified manually. Value comparison is done by calling **sameObjects(*obj1, obj2, objectCompareOptions*)** from the "react-simple-util" package to perform a deep object comparison.
+	- Conditionally filtering updates (***subscribedStates.condition***) is automatically implemented by comparing the value returned by the selector against its previous value, therefore it cannot be specified manually
+	- Value comparison is done by calling **sameObjects(*obj1, obj2, objectCompareOptions*)** from the "react-simple-util" package to perform a deep object comparison.
 	- The ***setValue()*** callback must also be provided for updating the value returned by the ***getValue()*** selector.
 	
 - **useGlobalStateReadOnlySelector({ *fullQualifiedName, defaultState, subscriberId?, mergeState?, ignoreContexts?, contextId?, enabled?, globalStateRoot?, onUpdate?, onUpdateSkipped?, getValue?, objectCompareOptions? * })**: 
