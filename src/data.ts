@@ -17,12 +17,12 @@ export const REACT_SIMPLE_STATE: ReactSimpleState = {
 			getGlobalStateSubscriptions: stub,
 			subscribeToGlobalState: stub,
 			unsubscribeFromGlobalState: stub,
-			globalStateUpdateSubscribedComponents: stub
+			updateGlobalStateSubscribedComponents: stub
 		},
 
 		globalState: {
+			mergeGlobalState: stub,
 			getGlobalState: stub,
-			getGlobalStateOrEmpty: stub,
 			setGlobalState: stub,
 			initGlobalState: stub,
 			removeGlobalState: stub

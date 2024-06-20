@@ -52,8 +52,10 @@ export const StateContext = (props: StateContextProps) => {
 			if (registeredContext && registeredContext.uniqueId !== uniqueId) {
 				logWarning(
 					`[StateContext]: StateContext with contextId='${contextId}' is already registed.`,
-					{ props, registeredContext },
-					REACT_SIMPLE_STATE.LOGGING.logLevel
+					{
+						args: { props, registeredContext },
+						logLevel: REACT_SIMPLE_STATE.LOGGING.logLevel
+					}
 				);
 			}
 

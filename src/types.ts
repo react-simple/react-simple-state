@@ -1,6 +1,6 @@
-import { LogLevel, ValueOrCallbackWithArgs } from "@react-simple/react-simple-util";
+import { LogLevel } from "@react-simple/react-simple-util";
 import { GlobalStateContextData } from "globalstate/context/types";
-import { GlobalStateUpdateConditions, GlobalStateSubscriptionsEntry } from "subscription/types";
+import { GlobalStateSubscriptionsEntry, GlobalStateUpdateFilterExt } from "subscriptions/types";
 import { ReactSimpleStateDependencyInjection } from "types.di";
 
 export interface GlobalStateRoot<State> {
@@ -25,23 +25,18 @@ export interface ReactSimpleState {
 	};
 }
 
-export type StateSetter<State> = (state: ValueOrCallbackWithArgs<State, Partial<State>>, options?: SetStateOptions<State>) => State;
-export type StateMerger<State> = (oldState: State, newState: Partial<State>) => State;
-
-export type StateReturn<State, TStateSetter = StateSetter<State>> = [State, TStateSetter];
-
-export interface InitStateOptions<State> {
+export interface InitGlobalStateOptions<State> {
 	// if specified deepCopyObject() will be called for the existing state
 	// default value is REACT_SIMPLE_STATE.DEFAULTS.immutableSetState
 	readonly immutableUpdate?: boolean; 
-	readonly updateState?: GlobalStateUpdateConditions<State>;
+	readonly updateStates?: GlobalStateUpdateFilterExt<State>;
 }
 
-export interface SetStateOptions<State> extends InitStateOptions<State>  {
-	readonly mergeState?: StateMerger<State>;
+export interface SetGlobalStateOptions<State> extends InitGlobalStateOptions<State>  {
+	readonly mergeState?: (oldState: State | undefined, newState: Partial<State>) => Partial<State>;
 }
 
-export interface RemoveStateOptions {
+export interface RemoveGlobalStateOptions {
 	readonly removeSubscriptions?: boolean;
 	readonly removeEmptyParents?: boolean;
 }

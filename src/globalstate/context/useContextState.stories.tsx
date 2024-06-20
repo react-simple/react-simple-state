@@ -4,7 +4,7 @@ import { LOG_LEVELS, LogLevel,  StorybookComponent, logInfo } from '@react-simpl
 import { Stack, Cluster, ObjectRenderer } from '@react-simple/react-simple-ui';
 import { REACT_SIMPLE_STATE } from 'data';
 import { useEffect } from 'react';
-import { useGlobalState } from "globalstate/useGlobalState";
+import { useGlobalState, useGlobalStateReadOnly } from "globalstate/useGlobalState";
 import { useGlobalStateBatch } from "globalstate/useGlobalStateBatch";
 import { getGlobalState, initGlobalState, removeGlobalState } from "globalstate/functions";
 import { StateContext, useGlobalStateContext } from "./StateContext";
@@ -17,7 +17,6 @@ const DESC = <>
 </>;
 
 type FormState = Record<string, string>;
-const DEFAULT_FORM_STATE: FormState = {};
 
 // Child components will be embedded into StateContexts
 const ChildComponent = (props: {
@@ -29,11 +28,16 @@ const ChildComponent = (props: {
 
 	const [formValues, setFormValues] = useGlobalState<FormState>({
 		fullQualifiedName: "form_values", // this path will be prefixed with the path coming from the context
-		defaultState: DEFAULT_FORM_STATE,
-		subscriberId: scope
+		subscriberId: scope,
+		defaultState: {}
 	});
 
-	logInfo(`[${scope}]: render`, { props, formValues }, REACT_SIMPLE_STATE.LOGGING.logLevel);
+	logInfo(
+		`[${scope}]: render`,
+		{
+			args: { props, formValues },
+			logLevel: REACT_SIMPLE_STATE.LOGGING.logLevel
+		});
 
 	return (
 		<Stack>
@@ -63,13 +67,18 @@ const ContextSummary = ({ title }: { title: string; }) => {
 	const scope = `Context Summary ${context.contextId}`;
 
 	// this is not root the state, we are within a context, so the fullQualifiedName of the context is used as a prefix
-	const [contextValues] = useGlobalState({
+	const contextValues = useGlobalStateReadOnly({
     fullQualifiedName: "",
-    defaultState: {},
-		subscriberId: scope
+		subscriberId: scope,
+		defaultState: {}
 	});
 
-	logInfo(`[${scope}]: render`, { contextValues }, REACT_SIMPLE_STATE.LOGGING.logLevel);
+	logInfo(
+		`[${scope}]: render`,
+		{
+			args: { contextValues },
+			logLevel: REACT_SIMPLE_STATE.LOGGING.logLevel
+		});
 
   return (
     <Stack>
@@ -92,7 +101,12 @@ const Summary = () => {
 		subscriberId: "Summary"
 	});
 
-  logInfo(`[${scope}]: render`, { allContextStates }, REACT_SIMPLE_STATE.LOGGING.logLevel)
+	logInfo(
+		`[${scope}]: render`,
+		{
+			args: { allContextStates },
+			logLevel: REACT_SIMPLE_STATE.LOGGING.logLevel
+		});
 
   return (
     <Stack>
@@ -117,14 +131,19 @@ const Component = (props: ComponentProps) => {
 	// this is not a state, in real app we only set it once at the beginning
 	REACT_SIMPLE_STATE.LOGGING.logLevel = props.logLevel;
 
-	logInfo("[Component]: render", props, REACT_SIMPLE_STATE.LOGGING.logLevel);
+	logInfo(
+		"[Component]: render",
+		{
+			args: props,
+			logLevel: REACT_SIMPLE_STATE.LOGGING.logLevel
+		});
 
 	// optional step: this is the root component, we initialize the state here and will remove it when finalizing
 	useEffect(
 		() => {
 			// Initialize			
-			initGlobalState("context_1", DEFAULT_FORM_STATE);
-			initGlobalState("context_2", DEFAULT_FORM_STATE);
+			initGlobalState("context_1", {});
+			initGlobalState("context_2", {});
 
 			return () => {
 				// Finalize
@@ -141,7 +160,7 @@ const Component = (props: ComponentProps) => {
 			<p>{DESC}</p>
 			<Cluster>
 				<input type="button" value="Trace root state" style={{ padding: "0.5em 1em" }}
-					onClick={() => console.log("state", getGlobalState("", {}))} />
+					onClick={() => console.log("state", getGlobalState(""))} />
 				
 				<input type="button" value="Trace subscriptions" style={{ padding: "0.5em 1em" }}
 					onClick={() => console.log("subscriptions", REACT_SIMPLE_STATE.ROOT_STATE.subscriptions)} />
@@ -155,7 +174,7 @@ const Component = (props: ComponentProps) => {
 
 				<Cluster>
 					<input type="button" value="Reset state" style={{ padding: "0.5em 1em" }}
-						onClick={() => initGlobalState("context_1", DEFAULT_FORM_STATE)} />
+						onClick={() => initGlobalState("context_1", {})} />
 				</Cluster>
 
 				<ChildComponent title="Component 1" fieldNames={["field_a", "field_b"]} />
@@ -170,7 +189,7 @@ const Component = (props: ComponentProps) => {
 					<h3>Context 2.2</h3>
 					<Cluster>
 						<input type="button" value="Reset state" style={{ padding: "0.5em 1em" }}
-							onClick={() => initGlobalState("context_2.context_2-2", DEFAULT_FORM_STATE)} />
+							onClick={() => initGlobalState("context_2.context_2-2", {})} />
 					</Cluster>
 
 					<ChildComponent title="Component 3" fieldNames={["field_a", "field_b", "field_c", "field_d"]} />

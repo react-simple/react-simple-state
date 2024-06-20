@@ -1,7 +1,7 @@
 import { newGuid } from "@react-simple/react-simple-util";
 import { REACT_SIMPLE_STATE } from "data";
 import { resetGlobalState } from "functions";
-import { getGlobalStateSubscriptions, subscribeToGlobalState } from "subscription";
+import { getGlobalStateSubscriptions, subscribeToGlobalState } from "subscriptions";
 
 it('subscribeToGlobalState.rootState', () => {
   // clear global state

@@ -1,9 +1,9 @@
 import * as React from "react";
 import type { Meta } from '@storybook/react';
-import { useGlobalState } from './useGlobalState';
+import { useGlobalState, useGlobalStateReadOnly } from './useGlobalState';
 import { LOG_LEVELS, LogLevel, StorybookComponent, logInfo } from '@react-simple/react-simple-util';
 import { Stack, Cluster, ObjectRenderer } from '@react-simple/react-simple-ui';
-import { getGlobalStateOrEmpty, initGlobalState, removeGlobalState } from './functions';
+import { getGlobalState, initGlobalState, removeGlobalState } from './functions';
 import { useEffect } from 'react';
 import { REACT_SIMPLE_STATE } from "data";
 
@@ -14,7 +14,6 @@ const DESC = <>
 </>;
 
 type FormState = Record<string, string>;
-const DEFAULT_FORM_STATE: FormState = {};
 
 const ChildComponent = (props: {
 	title: string;
@@ -25,11 +24,11 @@ const ChildComponent = (props: {
 
 	const [formValues, setFormValues] = useGlobalState<FormState>({
 		fullQualifiedName: "form_values",
-		defaultState: DEFAULT_FORM_STATE,
-		subscriberId: scope
+		subscriberId: scope,
+		defaultState: {}
 	});
 
-	logInfo(`[${scope}]: render`, { props, formValues }, REACT_SIMPLE_STATE.LOGGING.logLevel);
+	logInfo(`[${scope}]: render`, { args: { props, formValues }, logLevel: REACT_SIMPLE_STATE.LOGGING.logLevel });
 
 	return (
 		<Stack>
@@ -43,7 +42,7 @@ const ChildComponent = (props: {
 						type="text"
 						id={fieldName}
 						name={fieldName}
-						value={formValues[fieldName] || ""} // controlled input
+						value={formValues?.[fieldName] || ""} // controlled input
 						onChange={evt => setFormValues({ [fieldName]: evt.target.value })}
 					/>
 
@@ -58,24 +57,24 @@ const Summary = () => {
 	const scope = "Summary";
 
 	// get this component updated if anything changes in global state
-	const [globalState] = useGlobalState<{ form_values: FormState }>({
+	const { form_values: formValues } = useGlobalStateReadOnly<{ form_values: FormState }>({
 		fullQualifiedName: "", // root
-		defaultState: { form_values: {} },
-		subscriberId: scope
+		subscriberId: scope,
+		defaultState: { form_values: {} }
 	});
-
-	const formValues = globalState.form_values;
 
 	logInfo(
 		`[${scope}]: render`,
-		{ formValues, globalState, subscriptions: REACT_SIMPLE_STATE.ROOT_STATE.subscriptions },
-		REACT_SIMPLE_STATE.LOGGING.logLevel
+		{
+			args: { formValues, subscriptions: REACT_SIMPLE_STATE.ROOT_STATE.subscriptions },
+			logLevel: REACT_SIMPLE_STATE.LOGGING.logLevel
+		}
 	);
 
 	return (
 		<Stack>
 			<h2>Summary</h2>
-			<ObjectRenderer obj={{ formValues, globalState }} />
+			<ObjectRenderer obj={{ formValues }} />
 			<div>Updated: {new Date().toLocaleTimeString()}</div>
 		</Stack>
 	);
@@ -89,13 +88,13 @@ const Component = (props: ComponentProps) => {
 	// this is not a state, in real app we only set it once at the beginning
 	REACT_SIMPLE_STATE.LOGGING.logLevel = props.logLevel;
 
-	logInfo("[Component]: render", props, REACT_SIMPLE_STATE.LOGGING.logLevel);
+	logInfo("[Component]: render", { args: props, logLevel: REACT_SIMPLE_STATE.LOGGING.logLevel });
 
 	// optional step: this is the root component, we initialize the state here and will remove it when finalizing
 	useEffect(
 		() => {
 			// Initialize
-			initGlobalState("form_values", DEFAULT_FORM_STATE, { immutableUpdate: true });
+			initGlobalState("form_values", {}, { immutableUpdate: true });
 
 			return () => {
 				// Finalize
@@ -110,10 +109,10 @@ const Component = (props: ComponentProps) => {
 
 			<Cluster>
 				<input type="button" value="Reset state" style={{ padding: "0.5em 1em" }}
-					onClick={() => initGlobalState("form_values", DEFAULT_FORM_STATE)} />
+					onClick={() => initGlobalState("form_values", {})} />
 
 				<input type="button" value="Trace root state" style={{ padding: "0.5em 1em" }}
-					onClick={() => console.log("state", getGlobalStateOrEmpty(""))} />
+					onClick={() => console.log("state", getGlobalState(""))} />
 
 				<input type="button" value="Trace subscriptions" style={{ padding: "0.5em 1em" }}
 					onClick={() => console.log("subscriptions", REACT_SIMPLE_STATE.ROOT_STATE.subscriptions)} />

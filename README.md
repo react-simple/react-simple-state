@@ -9,7 +9,7 @@ Global state works like React component state	except that the state is stored gl
 	- **callback functions** to decide dynamically by comparing old vs new states
 	- **selectors** to compare old vs new values
 - Update filters can be specified during subscription in the **useGlobalState()** hook for example or during state updates by calling **setState()** returned by the **useGlobalState()** hook or using plain functions like **setGlobalState()** or **initGlobalState()**.
-- Calling directly the **globalStateUpdateSubscribedComponents()** function is the shortest way to update subscribed components.
+- Calling directly the **updateGlobalStateSubscribedComponents()** function is the shortest way to update subscribed components.
 - Root state and subscriptions are stored in **REACT_SIMPLE_STATE.ROOT_STATE** and can be easily replaced.
 - All functions can be injected by setting a custom implementation under **REACT_SIMPLE_STATE.ID**.
 - Hooks don't contain any logic, all features are implemented in plain JavaScript functions. Hooks are just wrappers using their internal state to update their parent components and can access React contexts which features are not available for plain functions.
@@ -39,8 +39,8 @@ import { ... } from "@react-simple/react-simple-state";
 **Updating the subscribed components is highly customizable.** By default any state changes for the subscribed state node or any of its parent or child nodes will update the subscribed component, however, this default behavior can be altered in many ways.
 
 Examples:
-- If the component is using **useGlobalState("partner.addresses[0]")** with no special ***subscribedStates*** values overriding the default update logic then any state updates to **partner, partner.addresses[0]** or **partner.addresses[0].city** will update the component.
-- Components can ignore parent or child state updates by setting **subscribedStates.parentState** or **subscribedStates.childState** to **false** or can specify the **subscribedStates.condition(*changeArgs*)** callback function to inspect the old and new states for **dynamic selective updates**.
+- If the component is using **useGlobalState("partner.addresses[0]")** with no special ***updateFilter*** values overriding the default update logic then any state updates to **partner, partner.addresses[0]** or **partner.addresses[0].city** will update the component.
+- Components can ignore parent or child state updates by setting **updateFilter.parentState** or **updateFilter.childState** to **false** or can specify the **updateFilter.condition(*changeArgs*)** callback function to inspect the old and new states for **dynamic selective updates**.
 - Components can also specify a **selector** in the **useGlobalStateSelector()** hook in which case updates are automatically filtered by comparing the previous and the current values of the selector.
 	- ***fullQualifiedName*** can be used to select the base state object: **"partner"**
 	- The ***getValue()*** selector can be used to return the inspected value: **t => t.addresses[0]**
@@ -105,11 +105,11 @@ The custom callback will be called with all parameters and the default implement
 	- By default a shallow merge is performed over the root members of the newly set state object by using { ...*oldState*, ...*newState* }, but it can be overriden in hook properties or in the **setState()** call.
 - **StateReturn&lt;State, StateSetter?&gt;**: State value and state setter returned by hooks.
 - **InitStateOptions&lt;State&gt;**: Options for **initGlobalState()** calls:
-	- **updateStates**: Filter to control *subscriptions of which states* should be triggered: ***thisState, parentState, childState, condition*()** callback.
-		- When subscriptions are triggered the subscribed components should be updated, however, subscribed components may have their ***subscribedState*** filter set which might prevent the updates.
+	- **updateStatess**: Filter to control *subscriptions of which states* should be triggered: ***thisState, parentState, childState, condition*()** callback.
+		- When subscriptions are triggered the subscribed components should be updated, however, subscribed components may have their ***updateFilter*** filter set which might prevent the updates.
 		- Optional. By default subscriptions of all parent and child states will be triggered, including the updated state with no condition.
 - **SetStateOptions&lt;State&gt;**: Options for **setGlobalState()** calls:
-	- **updateStates**: Same as for InitStateOptions
+	- **updateStatess**: Same as for InitStateOptions
 	- **mergeState()**: Custom merge callback (optional)
 - **RemoveStateOptions&lt;State&gt;**: Options for **removeGlobalState()** calls:
 	- **removeEmptyParents**: If set all parent objects will be removed which have become empty.
@@ -128,9 +128,9 @@ The custom callback will be called with all parameters and the default implement
 	- Components can subscribe to state node changes.
 	- This type represents a subscription with the following members:
 		- **fullQualifiedName** of the state node
-		- **subscribedState** to filter the changes by specifying **GlobalStateUpdateConditions**. All **true** by default, so any parent/child/this state node updates will trigger the subscription and update the component by calling **onUpdate()**.
+		- **updateFilter** to filter the changes by specifying **GlobalStateUpdateConditions**. All **true** by default, so any parent/child/this state node updates will trigger the subscription and update the component by calling **onUpdate()**.
 		- **onUpdate()** callback to update the subscribed component.
-		- **onUpdateSkipped()** callback to notify the subscribed component that it should have been updated according to the intentions of the **set/initGlobalState()** call, but it was filtered out by **subscribedState** conditions. So there was an update affecting this component subscription but the component was not subscribed to it intentionally.
+		- **onUpdateSkipped()** callback to notify the subscribed component that it should have been updated according to the intentions of the **set/initGlobalState()** call, but it was filtered out by **updateFilter** conditions. So there was an update affecting this component subscription but the component was not subscribed to it intentionally.
 - **GlobalStateSubscriptionsEntry&lt;State&gt;**:
 	- Subscriptions are ordered in a hierarchical tree following the structure of the global state (which is a plain JavaScript object) and this type represents an entry in this subscription hierarchy. It contains **subscriptions** (at this leveL) and **children** (child entries).
 
@@ -144,17 +144,12 @@ The custom callback will be called with all parameters and the default implement
 
 State can be read and written by using plain functions instead of hooks too. However, unlike hooks, functions don't provide subscription mechanisms therefore caller components can't get notified/updated about state changes. Albeit, using functions in event handlers is perfectly safe since when the event is fired the actual state will be read anyway.
 
-- **getGlobalState&lt;State&gt;(*fullQualifiedName, defaultState, options*)**:
+- **getGlobalState&lt;State&gt;(*fullQualifiedName, options*)**:
 	- Returns the current state value from global state by using ***fullQualifiedName***.
-	- Always returns the current state or the default state, but not empty.
+	- Returns the current state or empty.
 	- Can be used in event handlers or in components which do not need to be updated on state changes therefore using the **useGlobalState()** hook would just generate unnecessary updates.
 
-- **getGlobalStateOrEmpty&lt;State&gt;(*fullQualifiedName, options*)**:
-	- Returns the current state value from global state by using ***fullQualifiedName***.
-	- Returns the current state or empty; no defaultState parameter.
-	- Can be used in event handlers or in components which do not need to be updated on state changes therefore using the **useGlobalState()** hook would just generate unnecessary updates.
-
-- **setGlobalState&lt;State&gt;(*fullQualifiedName, state, defaultState, options*)**:
+- **setGlobalState&lt;State&gt;(*fullQualifiedName, state, options*)**:
 	- Sets the state value in global state by using ***fullQualifiedName*** and will update all subscribed components.
 	- This function can be used in event handlers or in components which do not need to be updated on state changes therefore using the **useGlobalState()** hook would just generate unnecessary updates.
 	- The argument can be a partial state or a callback function returning it, which then will be merged with the current state; *undefined* and *null* members will be skipped.
@@ -174,31 +169,31 @@ State can be read and written by using plain functions instead of hooks too. How
 
 ## Hooks
 
-- **useGlobalState&lt;State&gt;({ *fullQualifiedName, subscribedStates, defaultState, subscriberId?, mergeState?, ignoreContexts?, contextId?, enabled?, globalStateRoot?, onUpdate?, onUpdateSkipped?* })**: 
+- **useGlobalState&lt;State&gt;({ *fullQualifiedName, updateFilter, subscriberId?, mergeState?, ignoreContexts?, contextId?, enabled?, globalStateRoot?, onUpdate?, onUpdateSkipped?* })**: 
 	- Returns **[*state*, *setState()*]** result from global state by using ***fullQualifiedName***.
 	- Always returns the current state or the default state, but not empty.
 	- Subscribes to state changes so when global state with the same ***fullQualifiedName*** or if any parent or child state get updated.
-	- Ignoring state changes can be specified in ***subscribedStates*** by setting ***thisState, parentState*** or ***childState*** to **false** and a callback function (***condition***) can be provided to compare ***oldState*** vs ***newState*** for dynamically evaluated updates.
+	- Ignoring state changes can be specified in ***updateFilter*** by setting ***thisState, parentState*** or ***childState*** to **false** and a callback function (***condition***) can be provided to compare ***oldState*** vs ***newState*** for dynamically evaluated updates.
 	- By default ***fullQualifiedName*** is prefixed with any name prefixes coming from **&lt;StateContext&gt;** React contexts, but it can be disabled by setting ***ignoreContexts*** to **false**.
 	- By default the closest React context is used but a concrete one can be specified by passing its ***contextId***.
 	- if ***globalStateRoot*** is set it will be used instead of the default global state root in **REACT_SIMPLE_STATE.ROOT_STATE** for all state and subscription operations.
 	- This hook returns a **setState()** function to update the requested state.
-		- **setState(*state, options*)** is the simplified version of **setGlobalState({ *fullQualifiedName, state, defaultState, options* })**, since it does not require those arguments which were already specified for the hook.
+		- **setState(*state, options*)** is the simplified version of **setGlobalState({ *fullQualifiedName, state, options* })**, since it does not require those arguments which were already specified for the hook.
 		- The merging of the new state with the current state is a *shallow* merge, but a custom merge method can be specified either in ***options*** for the **setState()** call or in the properties of the hook.
 
-- **useGlobalStateBatch({ *fullQualifiedNames, subscribedStates, subscriberId?, mergeState?, ignoreContexts?, contextId?, enabled?, globalStateRoot?, onUpdate?, onUpdateSkipped?* })**: 
+- **useGlobalStateBatch({ *fullQualifiedNames, updateFilter, subscriberId?, mergeState?, ignoreContexts?, contextId?, enabled?, globalStateRoot?, onUpdate?, onUpdateSkipped?* })**: 
 	- Similar to the **useGlobalState()** hook, but it accepts multiple state paths and returns states in an associative array.
 	- Subscribes to all state changes for all state paths.
 	- State is always returned as-it-is, there is no initialization with a default value and **undefined** can be returned.
 	- It returns the global **setGlobalState()** function to set any states.
 
-- **useGlobalStateSelector({ *fullQualifiedName, defaultState, subscriberId?, mergeState?, ignoreContexts?, contextId?, enabled?, globalStateRoot?, onUpdate?, onUpdateSkipped?, getValue?, setValue?, objectCompareOptions? * })**: 
+- **useGlobalStateSelector({ *fullQualifiedName, subscriberId?, mergeState?, ignoreContexts?, contextId?, enabled?, globalStateRoot?, onUpdate?, onUpdateSkipped?, getValue?, setValue?, objectCompareOptions? * })**: 
 	- Similar to the **useGlobalState()** hook, but a ***getValue()*** selector must be specified to return a particular member value from the state addressed by ***fullQualifiedName***.
-	- Conditionally filtering updates (***subscribedStates.condition***) is automatically implemented by comparing the value returned by the selector against its previous value, therefore it cannot be specified manually
+	- Conditionally filtering updates (***updateFilter.condition***) is automatically implemented by comparing the value returned by the selector against its previous value, therefore it cannot be specified manually
 	- Value comparison is done by calling **sameObjects(*obj1, obj2, objectCompareOptions*)** from the "react-simple-util" package to perform a deep object comparison.
 	- The ***setValue()*** callback must also be provided for updating the value returned by the ***getValue()*** selector.
 	
-- **useGlobalStateReadOnlySelector({ *fullQualifiedName, defaultState, subscriberId?, mergeState?, ignoreContexts?, contextId?, enabled?, globalStateRoot?, onUpdate?, onUpdateSkipped?, getValue?, objectCompareOptions? * })**: 
+- **useGlobalStateSelectorReadOnly({ *fullQualifiedName, subscriberId?, mergeState?, ignoreContexts?, contextId?, enabled?, globalStateRoot?, onUpdate?, onUpdateSkipped?, getValue?, objectCompareOptions? * })**: 
 	- The read-only version of the **useGlobalStateSelector()** hook which does not need the ***setValue()*** callback.
 
 ## Context State

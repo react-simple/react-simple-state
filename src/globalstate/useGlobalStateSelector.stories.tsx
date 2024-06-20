@@ -6,7 +6,7 @@ import { Stack, Cluster, ObjectRenderer } from '@react-simple/react-simple-ui';
 import { getGlobalState, initGlobalState, removeGlobalState } from './functions';
 import { REACT_SIMPLE_STATE } from "data";
 import { useGlobalStateBatch } from "./useGlobalStateBatch";
-import { useGlobalStateReadOnlySelector, useGlobalStateSelector } from "./useGlobalStateSelector";
+import { useGlobalStateSelectorReadOnly, useGlobalStateSelector } from "./useGlobalStateSelector";
 
 const TITLE = "Global state / Selector filter";
 const DESC = <>
@@ -16,7 +16,6 @@ const DESC = <>
 </>;
 
 type FormState = Record<string, string>;
-const DEFAULT_FORM_STATE: FormState = {};
 
 const InputComponent = (props: {
 	title: string;
@@ -27,7 +26,7 @@ const InputComponent = (props: {
 
 	const [fieldValue, setFieldValue] = useGlobalStateSelector<FormState, string>({
 		fullQualifiedName: "form_values", // base state object for the selectors
-		defaultState: DEFAULT_FORM_STATE,
+		defaultState: {},
 		getValue: state => state[fieldName],
 		setValue: value => ({ [fieldName]: value }),
 		subscriberId: scope
@@ -35,8 +34,10 @@ const InputComponent = (props: {
 
 	logInfo(
 		`[${scope}]: render`,
-		{ props, formValues: fieldValue },
-		REACT_SIMPLE_STATE.LOGGING.logLevel
+		{
+			args: { props, formValues: fieldValue },
+			logLevel: REACT_SIMPLE_STATE.LOGGING.logLevel
+		}
 	);
 
 	return (
@@ -63,9 +64,9 @@ const ReadOnlyComponent = (props: {
 	const { title, fieldName } = props;
 	const scope = `ReadOnlyComponent[title=${title}]`;
 
-	const fieldValue = useGlobalStateReadOnlySelector<FormState, string>({
+	const fieldValue = useGlobalStateSelectorReadOnly<FormState, string>({
 		fullQualifiedName: "form_values", // base object for the selectors
-		defaultState: DEFAULT_FORM_STATE,
+		defaultState: {},
 		getValue: state => state[fieldName],
 		subscriberId: scope,
 		onUpdateSkipped: () => console.log(`[${scope}]: Update skipped`)
@@ -73,8 +74,10 @@ const ReadOnlyComponent = (props: {
 
 	logInfo(
 		`[${scope}]: render`,
-		{ props, formValues: fieldValue },
-		REACT_SIMPLE_STATE.LOGGING.logLevel
+		{
+			args: { props, formValues: fieldValue },
+			logLevel: REACT_SIMPLE_STATE.LOGGING.logLevel
+		}
 	);
 
 	return (
@@ -99,8 +102,10 @@ const Summary = () => {
 
 	logInfo(
 		`[${scope}]: render`,
-		{ formValues, globalState },
-		REACT_SIMPLE_STATE.LOGGING.logLevel
+		{
+			args: { formValues, globalState },
+			logLevel: REACT_SIMPLE_STATE.LOGGING.logLevel
+		}
 	);
 
 	return (
@@ -119,13 +124,13 @@ const Component = (props: ComponentProps) => {
 	// this is not a state, in real app we only set it once at the beginning
 	REACT_SIMPLE_STATE.LOGGING.logLevel = props.logLevel;
 
-	logInfo("[Component]: render", props, REACT_SIMPLE_STATE.LOGGING.logLevel);
+	logInfo("[Component]: render", { args: props, logLevel: REACT_SIMPLE_STATE.LOGGING.logLevel });
 
 	// optional step: this is the root component, we initialize the state here and will remove it when finalizing
 	useEffect(
 		() => {
 			// Initialize
-			initGlobalState("form_values", DEFAULT_FORM_STATE);
+			initGlobalState("form_values", {});
 
 			return () => {
 				// Finalize
@@ -140,10 +145,10 @@ const Component = (props: ComponentProps) => {
 
 			<Cluster>
 				<input type="button" value="Reset state" style={{ padding: "0.5em 1em" }}
-					onClick={() => initGlobalState("form_values", DEFAULT_FORM_STATE)} />
+					onClick={() => initGlobalState("form_values", {})} />
 
 				<input type="button" value="Trace root state" style={{ padding: "0.5em 1em" }}
-					onClick={() => console.log("state", getGlobalState("", {}))} />
+					onClick={() => console.log("state", getGlobalState(""))} />
 				
 				<input type="button" value="Trace subscriptions" style={{ padding: "0.5em 1em" }}
 					onClick={() => console.log("subscriptions", REACT_SIMPLE_STATE.ROOT_STATE.subscriptions)} />

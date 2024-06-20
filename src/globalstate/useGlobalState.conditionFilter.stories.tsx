@@ -11,12 +11,11 @@ import { useGlobalStateBatch } from "./useGlobalStateBatch";
 const TITLE = "Global state / Condition filter";
 const DESC = <>
 	The form state is global, but when field values change <strong>only the affected components</strong> get updated.{" "}
-	This is achieved by specifying <strong>subscribedState.condition()</strong> to compare field values (<em>oldState</em> vs <em>newState</em>).{" "}
+	This is achieved by specifying <strong>updateFilter.condition()</strong> to compare field values (<em>oldState</em> vs <em>newState</em>).{" "}
 	The <strong>useGlobalStateBatch()</strong> hook is used. See console log for details.
 </>;
 
 type FormState = Record<string, string>;
-const DEFAULT_FORM_STATE: FormState = {};
 
 const ChildComponent = (props: {
 	title: string;
@@ -27,15 +26,17 @@ const ChildComponent = (props: {
 
 	const [formValues, setFormValues] = useGlobalState<FormState>({
 		fullQualifiedName: "form_values",
-		defaultState: DEFAULT_FORM_STATE,
-		subscribedState: {
+		defaultState: {},
+		updateFilter: {
 			condition: ({ oldState, newState }) => {
 				const result = fieldNames.some(t => oldState?.[t] !== newState[t]);
 
 				logInfo(
 					`[${scope}]: updateFilter -> ${result}`,
-					{ fieldNames, oldState, newState, result },
-					REACT_SIMPLE_STATE.LOGGING.logLevel);
+					{
+						args: { fieldNames, oldState, newState, result },
+						logLevel: REACT_SIMPLE_STATE.LOGGING.logLevel
+					});
 
 				return result;
 			}
@@ -45,8 +46,10 @@ const ChildComponent = (props: {
 
 	logInfo(
 		`[${scope}]: render`,
-		{ props, formValues },
-		REACT_SIMPLE_STATE.LOGGING.logLevel
+		{
+			args: { props, formValues },
+			logLevel: REACT_SIMPLE_STATE.LOGGING.logLevel
+		}
 	);
 
 	return (
@@ -85,8 +88,10 @@ const Summary = () => {
 
 	logInfo(
 		`[${scope}]: render`,
-		{ formValues, globalState },
-		REACT_SIMPLE_STATE.LOGGING.logLevel
+		{
+			args: { formValues, globalState },
+			logLevel: REACT_SIMPLE_STATE.LOGGING.logLevel
+		}
 	);
 
 	return (
@@ -105,13 +110,13 @@ const Component = (props: ComponentProps) => {
 	// this is not a state, in real app we only set it once at the beginning
 	REACT_SIMPLE_STATE.LOGGING.logLevel = props.logLevel;
 
-	logInfo("[Component]: render", props, REACT_SIMPLE_STATE.LOGGING.logLevel);
+	logInfo("[Component]: render", { args: props, logLevel: REACT_SIMPLE_STATE.LOGGING.logLevel });
 
 	// optional step: this is the root component, we initialize the state here and will remove it when finalizing
 	useEffect(
 		() => {
 			// Initialize
-			initGlobalState("form_values", DEFAULT_FORM_STATE);
+			initGlobalState("form_values", {});
 
 			return () => {
 				// Finalize
@@ -126,10 +131,10 @@ const Component = (props: ComponentProps) => {
 
 			<Cluster>
 				<input type="button" value="Reset state" style={{ padding: "0.5em 1em" }}
-					onClick={() => initGlobalState("form_values", DEFAULT_FORM_STATE)} />
+					onClick={() => initGlobalState("form_values", {})} />
 
 				<input type="button" value="Trace root state" style={{ padding: "0.5em 1em" }}
-					onClick={() => console.log("state", getGlobalState("", {}))} />
+					onClick={() => console.log("state", getGlobalState(""))} />
 
 				<input type="button" value="Trace subscriptions" style={{ padding: "0.5em 1em" }}
 					onClick={() => console.log("subscriptions", REACT_SIMPLE_STATE.ROOT_STATE.subscriptions)} />

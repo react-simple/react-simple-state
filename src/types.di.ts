@@ -1,9 +1,7 @@
 import { ChildMemberInfoWithCallbacks } from "@react-simple/react-simple-mapping";
-import { Guid, ValueOrCallback, ValueOrCallbackWithArgs } from "@react-simple/react-simple-util";
-import {
-	GlobalStateChangeArgs, GlobalStateUpdateConditions, GlobalStateSubscription, GlobalStateSubscriptionsEntry	
- } from "subscription/types";
-import { GlobalStateRoot, RemoveStateOptions, SetStateOptions } from "types";
+import { Guid, Optional, ValueOrCallback, ValueOrCallbackWithArgs } from "@react-simple/react-simple-util";
+import { GlobalStateChangeArgs, GlobalStateSubscription, GlobalStateSubscriptionsEntry } from "subscriptions/types";
+import { GlobalStateRoot, RemoveGlobalStateOptions, SetGlobalStateOptions } from "types";
 
 export interface ReactSimpleStateDependencyInjection {
 	subscription: {
@@ -23,7 +21,7 @@ export interface ReactSimpleStateDependencyInjection {
 
 		subscribeToGlobalState: <State>(
 			uniqueId: Guid,
-			subscription: Omit<GlobalStateSubscription<State>, "subscribedState"> & { subscribedState?: Partial<GlobalStateUpdateConditions<State>> },
+			subscription: Optional<GlobalStateSubscription<State>, "updateFilter">,
 			globalStateRoot: GlobalStateRoot<unknown>,
 			defaultImpl: ReactSimpleStateDependencyInjection["subscription"]["subscribeToGlobalState"]
 		) => void;
@@ -35,47 +33,47 @@ export interface ReactSimpleStateDependencyInjection {
 			defaultImpl: ReactSimpleStateDependencyInjection["subscription"]["unsubscribeFromGlobalState"]
 		) => void;
 
-		globalStateUpdateSubscribedComponents: <State>(
+		updateGlobalStateSubscribedComponents: <State>(
 			changeArgs: GlobalStateChangeArgs<State>,
-			options: SetStateOptions<State>,
+			options: SetGlobalStateOptions<State>,
 			globalStateRoot: GlobalStateRoot<unknown>,
-			defaultImpl: ReactSimpleStateDependencyInjection["subscription"]["globalStateUpdateSubscribedComponents"]
+			defaultImpl: ReactSimpleStateDependencyInjection["subscription"]["updateGlobalStateSubscribedComponents"]
 		) => void;
 	};
 
 	globalState: {
+		mergeGlobalState: <State>(
+			oldState: State | undefined,
+			newState: Partial<State>,
+			mergeState: ((oldState: State | undefined, newState: Partial<State>) => Partial<State>) | undefined,
+			defaultImpl: ReactSimpleStateDependencyInjection["globalState"]["mergeGlobalState"]
+		) => Partial<State>;
+
 		getGlobalState: <State>(
 			fullQualifiedName: string, // full qualified child path
-			defaultState: ValueOrCallback<State>,
 			globalStateRoot: GlobalStateRoot<unknown>,
 			defaultImpl: ReactSimpleStateDependencyInjection["globalState"]["getGlobalState"]
-		) => State;
-
-		getGlobalStateOrEmpty: <State>(
-			fullQualifiedName: string, // full qualified child path
-			globalStateRoot: GlobalStateRoot<unknown>,
-			defaultImpl: ReactSimpleStateDependencyInjection["globalState"]["getGlobalStateOrEmpty"]
 		) => State | undefined;
 
 		setGlobalState: <State>(
 			fullQualifiedName: string, // full qualified child path
-			state: ValueOrCallbackWithArgs<State | undefined, State>,
-			options: SetStateOptions<State>,
+			state: ValueOrCallbackWithArgs<State | undefined, Partial<State>>,
+			options: SetGlobalStateOptions<State>,
 			globalStateRoot: GlobalStateRoot<unknown>,
 			defaultImpl: ReactSimpleStateDependencyInjection["globalState"]["setGlobalState"]
-		) => State;
+		) => Partial<State>;
 
 		initGlobalState: <State>(
 			fullQualifiedName: string, // full qualified child path
 			state: ValueOrCallback<State>,
-			options: Omit<SetStateOptions<State>, "customMerge">,
+			options: Omit<SetGlobalStateOptions<State>, "customMerge">,
 			globalStateRoot: GlobalStateRoot<unknown>,
 			defaultImpl: ReactSimpleStateDependencyInjection["globalState"]["initGlobalState"]
 		) => State;
 
 		removeGlobalState: (
 			fullQualifiedNames: string | string[], // full qualified child path
-			options: RemoveStateOptions,
+			options: RemoveGlobalStateOptions,
 			globalStateRoot: GlobalStateRoot<unknown>,
 			defaultImpl: ReactSimpleStateDependencyInjection["globalState"]["removeGlobalState"]
 		) => void;
