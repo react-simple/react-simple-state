@@ -15,11 +15,12 @@ function getGlobalStateSubscriptionsMemberInfo_default<State>(
     !!createEntryIfMissing,
     {
       getMemberValue: (parent, names) => {
-        return (parent as GlobalStateSubscriptionsEntry<unknown>).children[names.name];
+        return names.name
+          ? (parent as GlobalStateSubscriptionsEntry<unknown>).children[names.name]
+          : parent;
       },
       setMemberValue: (parent, names, value) => {
         (parent as GlobalStateSubscriptionsEntry<unknown>).children[names.name] = value as GlobalStateSubscriptionsEntry<unknown>;
-        return true;
       },
       createMember: (_, names) => ({
         fullQualifiedName: names.fullQualifiedName,
@@ -28,7 +29,9 @@ function getGlobalStateSubscriptionsMemberInfo_default<State>(
       }),
       deleteMember: (parent, names) => {
         delete (parent as GlobalStateSubscriptionsEntry<unknown>).children[names.name];
-        return true;
+      },
+      setStartObject: value => {
+        REACT_SIMPLE_STATE.ROOT_STATE.subscriptions = value as GlobalStateSubscriptionsEntry<unknown>;
       }
     }
   );
@@ -79,13 +82,13 @@ const subscribeToGlobalState_default = <State>(
 ) => {
   const member = getGlobalStateSubscriptionsMemberInfo<State>(subscription.fullQualifiedName, true, globalStateRoot)!;
   const subs = member.getValue();
-  
+
   if (!subs) {
     member.setValue({
       fullQualifiedName: subscription.fullQualifiedName,
       subscriptions: {
         [uniqueId]: {
-          ...subscription ,
+          ...subscription,
           updateFilter: subscription.updateFilter || {}
         }
       },
@@ -96,9 +99,9 @@ const subscribeToGlobalState_default = <State>(
     subs.subscriptions[uniqueId] = {
       ...subscription,
       updateFilter: subscription.updateFilter || {}
-    }
+    };
   }
-};
+}
 
 REACT_SIMPLE_STATE.DI.subscription.subscribeToGlobalState = subscribeToGlobalState_default;
 
@@ -155,24 +158,34 @@ const updateGlobalStateSubscribedComponents_default = <State>(
     { args: { fullQualifiedName, changeArgs, options, globalStateRoot } }
   ), { logLevel: REACT_SIMPLE_STATE.LOGGING.logLevel });
 
-  if (updateStates !== false &&
-    updateStates.condition?.(changeArgs) !== false
+  if (updateStates === true ||
+    (updateStates !== false && updateStates.condition?.(changeArgs) !== false)
   ) {
     const thisSubs = getGlobalStateSubscriptions<State>(fullQualifiedName, false, globalStateRoot);
 
     // this state
-    if (thisSubs && updateStates.thisState !== false) {
+    if (thisSubs && (updateStates === true || updateStates.thisState !== false)) {
       logTrace(log => log(
         `[updateGlobalStateSubscribedComponents] updating this state: '${thisSubs.fullQualifiedName}'`,
         { args: { updateStates, thisSubs, globalStateRoot } }
       ), { logLevel: REACT_SIMPLE_STATE.LOGGING.logLevel });
 
       for (const [uniqueId, thisSub] of Object.entries(thisSubs.subscriptions)) {
-        if (thisSub.updateFilter !== false &&
-          thisSub.updateFilter.thisState !== false &&          
-          thisSub.updateFilter.condition?.(changeArgs) !== false &&
-          (!thisSub.updateFilter.fullQualifiedNames || thisSub.updateFilter.fullQualifiedNames.includes(fullQualifiedName)) &&
-          (!updateStates.fullQualifiedNames || updateStates.fullQualifiedNames.includes(thisSub.fullQualifiedName))
+        if (thisSub.updateFilter === true ||
+          (
+            thisSub.updateFilter !== false &&
+            thisSub.updateFilter.thisState !== false &&
+            thisSub.updateFilter.condition?.(changeArgs) !== false &&
+            (
+              !thisSub.updateFilter.fullQualifiedNames ||
+              thisSub.updateFilter.fullQualifiedNames.includes(fullQualifiedName)
+            ) &&
+            (
+              updateStates === true ||
+              !updateStates.fullQualifiedNames ||
+              updateStates.fullQualifiedNames.includes(thisSub.fullQualifiedName)
+            )
+          )
         ) {
           logTrace(log => log(
             `[updateGlobalStateSubscribedComponents] updating subscriberId: ${uniqueId}'`,
@@ -193,7 +206,7 @@ const updateGlobalStateSubscribedComponents_default = <State>(
     }
 
     // parents
-    if (updateStates?.parentState !== false) {
+    if (updateStates === true || updateStates.parentState !== false) {
       const fullQualifiedNameParts = splitFullQualifiedName(fullQualifiedName, { unwrapArrayIndexers: true });
       const parents: GlobalStateSubscriptionsEntry<unknown>[] = [];
     
@@ -218,11 +231,21 @@ const updateGlobalStateSubscribedComponents_default = <State>(
         ), { logLevel: REACT_SIMPLE_STATE.LOGGING.logLevel });
 
         for (const [uniqueId, parentSub] of Object.entries(parentSubs.subscriptions)) {
-          if (parentSub.updateFilter !== false &&
-            parentSub.updateFilter.childState !== false &&
-            parentSub.updateFilter.condition?.(changeArgs) !== false &&
-            (!parentSub.updateFilter.fullQualifiedNames || parentSub.updateFilter.fullQualifiedNames.includes(fullQualifiedName)) &&
-            (!updateStates.fullQualifiedNames || updateStates.fullQualifiedNames.includes(parentSub.fullQualifiedName))
+          if (parentSub.updateFilter === true ||
+            (
+              parentSub.updateFilter !== false &&
+              parentSub.updateFilter.childState !== false &&
+              parentSub.updateFilter.condition?.(changeArgs) !== false &&
+              (
+                !parentSub.updateFilter.fullQualifiedNames ||
+                parentSub.updateFilter.fullQualifiedNames.includes(fullQualifiedName)
+              ) &&
+              (
+                updateStates === true ||
+                !updateStates.fullQualifiedNames ||
+                updateStates.fullQualifiedNames.includes(parentSub.fullQualifiedName)
+              )
+            )
           ) {
             logTrace(log => log(
               `[updateGlobalStateSubscribedComponents] updating subscriberId: ${uniqueId}'`,
@@ -243,7 +266,7 @@ const updateGlobalStateSubscribedComponents_default = <State>(
     }
 
     // children
-    if (thisSubs && updateStates?.childState !== false) {
+    if (thisSubs && (updateStates === true || updateStates.childState !== false)) {
       recursiveIteration(
         Object.values(thisSubs.children),
         t => Object.values(t.item.children),
@@ -254,11 +277,21 @@ const updateGlobalStateSubscribedComponents_default = <State>(
           ), { logLevel: REACT_SIMPLE_STATE.LOGGING.logLevel });
 
           for (const [uniqueId, childSub] of Object.entries(childSubs.subscriptions)) {
-            if (childSub.updateFilter !== false &&
-              childSub.updateFilter.parentState !== false &&
-              childSub.updateFilter.condition?.(changeArgs) !== false &&
-              (!childSub.updateFilter.fullQualifiedNames || childSub.updateFilter.fullQualifiedNames.includes(fullQualifiedName)) &&
-              (!updateStates.fullQualifiedNames || updateStates.fullQualifiedNames.includes(childSub.fullQualifiedName))
+            if (childSub.updateFilter === true ||
+              (
+                childSub.updateFilter !== false &&
+                childSub.updateFilter.parentState !== false &&
+                childSub.updateFilter.condition?.(changeArgs) !== false &&
+                (
+                  !childSub.updateFilter.fullQualifiedNames ||
+                  childSub.updateFilter.fullQualifiedNames.includes(fullQualifiedName)
+                ) &&
+                (
+                  updateStates === true ||
+                  !updateStates.fullQualifiedNames ||
+                  updateStates.fullQualifiedNames.includes(childSub.fullQualifiedName)
+                )
+              )
             ) {
               logTrace(log => log(
                 `[updateGlobalStateSubscribedComponents] updating subscriberId: ${uniqueId}'`,

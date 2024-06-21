@@ -1,16 +1,15 @@
-import * as React from "react";
+import * as React from 'react';
+import  { useEffect } from 'react';
 import type { Meta } from '@storybook/react';
 import { LOG_LEVELS, LogLevel,  StorybookComponent, logInfo } from '@react-simple/react-simple-util';
 import { Stack, Cluster, ObjectRenderer } from '@react-simple/react-simple-ui';
 import { REACT_SIMPLE_STATE } from 'data';
-import { useEffect } from 'react';
-import { useGlobalState, useGlobalStateReadOnly } from "globalstate/useGlobalState";
-import { useGlobalStateBatch } from "globalstate/useGlobalStateBatch";
-import { getGlobalState, initGlobalState, removeGlobalState } from "globalstate/functions";
-import { StateContext, useGlobalStateContext } from "./StateContext";
-import { getGlobalStateContextDataAll } from "./functions";
+import {
+	StateContext, getGlobalStateContextDataAll, useGlobalStateContext, useGlobalStateReadOnly,
+	getGlobalState, initGlobalState, removeGlobalState, useGlobalState, useGlobalStateBatch
+} from "globalstate";
 
-const TITLE = "Context state / Multiple contexts";
+const TITLE = "Context state";
 const DESC = <>
 	Components can have their own &lt;StateContext&gt; scopes which separate their states by prefixing the state path used in{" "}
 	<strong>useGlobalState()</strong>. &lt;StateContext&gt;-s can be embedded.
@@ -96,7 +95,7 @@ const Summary = () => {
 	// Get the state of all existing contexts.
 	// At first render we won't have any since contexts register themselves during render, so in that case we subscribe
 	// to the root state; so this component will be updated on any changes and re-subscribe itself to the contexts' path.
-	const [allContextStates] = useGlobalStateBatch<FormState>({
+	const allContextStates = useGlobalStateBatch<FormState>({
 		fullQualifiedNames: contexts.length ? contexts.map(t => t.fullQualifiedNamePrefix) : [""],
 		subscriberId: "Summary"
 	});

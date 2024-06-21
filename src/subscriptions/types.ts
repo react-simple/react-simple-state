@@ -1,4 +1,4 @@
-import { Guid, ObjectCompareOptions } from "@react-simple/react-simple-util";
+import { Guid } from "@react-simple/react-simple-util";
 
 export interface GlobalStateChangeArgs<State> {
 	fullQualifiedName: string;
@@ -16,7 +16,10 @@ export interface GlobalStateSubscriptionsEntry<State> {
 
 export interface GlobalStateSubscription<State> {
 	readonly fullQualifiedName: string;
-	readonly updateFilter: GlobalStateUpdateFilterExt<State>;
+	readonly updateFilter:
+	| false // never update
+	| true // always update (this, parent, child state changes); same as undefined
+	| GlobalStateUpdateFilter<State>;
 
 	readonly onUpdate: (
 		changeArgs: GlobalStateChangeArgs<State>, // the change state
@@ -42,14 +45,3 @@ export interface GlobalStateUpdateFilter<State> {
 	// update component if condition() returns true; 'true' by default
 	readonly condition?: ((changeArgs: GlobalStateChangeArgs<State>) => boolean);
 }
-
-export type GlobalStateUpdateFilterExt<State> = false | GlobalStateUpdateFilter<State>;
-
-export type GlobalStateUpdateFilterWithSelector<State> = false | GlobalStateUpdateFilterExt<State> & {
-	// update component if the value returned by selector.getValue() changes; 'true' by default
-	// uses sameObjects() from the 'react-simple-util' package
-	readonly selector?: {
-		readonly getValue: (state: State) => unknown; // selector will be called over state addressed by fullQualifiedName
-		readonly objectCompareOptions?: ObjectCompareOptions<boolean>;
-	};
-};

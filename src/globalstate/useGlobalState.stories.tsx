@@ -7,7 +7,7 @@ import { getGlobalState, initGlobalState, removeGlobalState } from './functions'
 import { useEffect } from 'react';
 import { REACT_SIMPLE_STATE } from "data";
 
-const TITLE = "Global state / Simple global state";
+const TITLE = "Global state";
 const DESC = <>
 	The form state is global. When field values change <strong>all components</strong> get updated.
 	The <strong>useGlobalState()</strong> hook is used. See console log for details.

@@ -1,15 +1,16 @@
 import { useEffect, useRef, useState } from "react";
 import {
-	ValueOrCallback, ValueOrCallbackWithArgs, getResolvedCallbackValue, isFunction, logTrace, sameObjects, stringAppend,
-	useForceUpdate, useUniqueId
+	ValueOrCallback, getResolvedCallbackValue, isEmpty, isFunction, logTrace, sameObjects, stringAppend, useForceUpdate, useUniqueId
  } from "@react-simple/react-simple-util";
+import { setChildMemberValue } from "@react-simple/react-simple-mapping";
 import { getGlobalState, removeGlobalState, setGlobalState } from "./functions";
-import { GlobalStateRoot, RemoveGlobalStateOptions, SetGlobalStateOptions } from "types";
+import { GlobalStateRoot, RemoveGlobalStateOptions } from "types";
 import { REACT_SIMPLE_STATE } from "data";
 import {
-	GlobalStateSubscription, GlobalStateUpdateFilter, GlobalStateUpdateFilterWithSelector, subscribeToGlobalState, unsubscribeFromGlobalState
- } from "subscriptions";
+	GlobalStateSubscription, GlobalStateUpdateFilter, getGlobalStateUpdateFilterSelectorValue, subscribeToGlobalState, unsubscribeFromGlobalState 
+} from "subscriptions";
 import { useGlobalStateContext } from "./context";
+import { UseGlobalStateSetChildStateCallback, UseGlobalStateSetStateCallback, UseGlobalStateUpdateFilter } from "./types";
 
 // By calling useGlobalState() the parent component subscribes to state changes according to the specified updateFilter value.
 
@@ -19,7 +20,7 @@ export interface UseGlobalStateProps<State> {
 	defaultState: ValueOrCallback<State>;
 
 	// default is unconditional true for all (this, parents, children)
-	updateFilter?: GlobalStateUpdateFilterWithSelector<State>;
+	updateFilter?: UseGlobalStateUpdateFilter<State>;
 
 	// optional
 	subscriberId?: string; // custom metadata for tracing info only
@@ -38,29 +39,21 @@ export interface UseGlobalStateProps<State> {
 	onUpdateSkipped?: GlobalStateSubscription<State>["onUpdateSkipped"];
 }
 
-export type UseGlobalStateReturn<State> = [
-	// state
-	State,
-	// setState
-	(
-		newState: ValueOrCallbackWithArgs<State, Partial<State>>,
-		options?: SetGlobalStateOptions<State>
-	) => State
-];
+export type UseGlobalStateReturn<State> = [State, UseGlobalStateSetStateCallback<State>];
 
 export function useGlobalState<State>(props: UseGlobalStateProps<State>): UseGlobalStateReturn<State> {
 	const {
-		updateFilter, subscriberId, ignoreContexts, contextId, enabled = true, globalStateRoot, removeStateOnUnload
+		updateFilter = false, subscriberId, ignoreContexts, contextId, enabled = true, globalStateRoot, removeStateOnUnload
 	} = props;
 
 	const uniqueId = useUniqueId({ prefix: subscriberId }); // generate permanent uniqueId for this hook instance
 	const forceUpdate = useForceUpdate();
 	const context = useGlobalStateContext(contextId);
 
-	const [previousValue, setPreviousValue] = useState<unknown>();
-	const refPreviousValue = useRef<unknown>();
-	refPreviousValue.current = previousValue;
-	
+	const [previousStateOrValue, setPreviousStateOrValue] = useState<unknown>();
+	const refPreviousStateOrValue = useRef<unknown>();
+	refPreviousStateOrValue.current = previousStateOrValue;
+
 	const fullQualifiedName = context.fullQualifiedNamePrefix && !ignoreContexts
 		? stringAppend(context?.fullQualifiedNamePrefix, props.fullQualifiedName, ".")
 		: props.fullQualifiedName;
@@ -89,9 +82,9 @@ export function useGlobalState<State>(props: UseGlobalStateProps<State>): UseGlo
 		{ args: { props, uniqueId, currentState, globalStateRoot } }
 	), { logLevel: REACT_SIMPLE_STATE.LOGGING.logLevel });
 
-	const calculateGlobalStateHooksUpdateFilter: () => GlobalStateUpdateFilter<State> | undefined = () => {
-		if (!updateFilter) {
-			return undefined;
+	const evaluateSelector: () => false | true | GlobalStateUpdateFilter<State> = () => {
+		if (updateFilter === false || updateFilter === true) {
+			return updateFilter;
 		}
 		else if (updateFilter.condition || updateFilter.selector) {
 			return {
@@ -105,15 +98,26 @@ export function useGlobalState<State>(props: UseGlobalStateProps<State>): UseGlo
 					// check selector
 					if (updateFilter.selector) {
 						const state = getGlobalState<State>(fullQualifiedName, globalStateRoot) || defaultState;
-						const value = updateFilter.selector.getValue(state);
 						
-						if (!sameObjects(value, refPreviousValue.current, updateFilter.selector.objectCompareOptions)) {
-							setPreviousValue(value);
+						if (updateFilter.compareState) {
+							if (!sameObjects(state, refPreviousStateOrValue.current, updateFilter.objectCompareOptions)) {
+								setPreviousStateOrValue(state);
+								return true;
+							}
+							else {
+								// if state matches there is no need to compare the value, since it's a child of state
+								return false;
+							}
+						}
+
+						const value = getGlobalStateUpdateFilterSelectorValue(updateFilter.selector, state);
+						
+						if (!sameObjects(value, refPreviousStateOrValue.current, updateFilter.objectCompareOptions)) {
+							setPreviousStateOrValue(value);
 							return true;
 						}
-						else {
-							return false;
-						}
+						
+						return false;
 					}
 
 					return true;
@@ -135,7 +139,7 @@ export function useGlobalState<State>(props: UseGlobalStateProps<State>): UseGlo
 					uniqueId,
 					{
 						fullQualifiedName,
-						updateFilter: calculateGlobalStateHooksUpdateFilter(),
+						updateFilter: evaluateSelector(),
 						onUpdate,
 						onUpdateSkipped
 					},
@@ -161,13 +165,24 @@ export function useGlobalState<State>(props: UseGlobalStateProps<State>): UseGlo
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 		[fullQualifiedName, enabled, subscriberId, globalStateRoot]);
 	
-	const setState: UseGlobalStateReturn<State>[1] = (newState, options) => {
+	const setState: UseGlobalStateSetStateCallback<State> = (newState, options) => {
 		// Since defaultValue is a complete state, the returned value will be a complete state too.
-		return setGlobalState(
-			fullQualifiedName,
-			(isFunction(newState) ? (t: State | undefined) => newState(t || defaultState) : newState) as Partial<State>,
-			options,
-			globalStateRoot) as State;
+		if (!isEmpty((newState as UseGlobalStateSetChildStateCallback).childMemberFullQualifiedName)) {
+			setChildMemberValue(
+				currentState as object,
+				(newState as UseGlobalStateSetChildStateCallback).childMemberFullQualifiedName,
+				(newState as UseGlobalStateSetChildStateCallback).state
+			);
+			
+			return setGlobalState(fullQualifiedName, currentState, options, globalStateRoot) as State;
+		}
+		else {
+			return setGlobalState(
+				fullQualifiedName,
+				(isFunction(newState) ? (t: State | undefined) => newState(t || defaultState) : newState) as Partial<State>,
+				options,
+				globalStateRoot) as State;
+		}
 	};
 
 	return [
@@ -175,8 +190,3 @@ export function useGlobalState<State>(props: UseGlobalStateProps<State>): UseGlo
 		setState
 	];
 }
-
-// Returns state only, but no setter
-export const useGlobalStateReadOnly = <State>(props: Omit<UseGlobalStateProps<State>, "mergeState">) => {
-	return useGlobalState(props)[0];
-};

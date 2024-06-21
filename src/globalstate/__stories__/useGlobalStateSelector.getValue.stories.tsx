@@ -1,14 +1,12 @@
-import * as React from "react";
+import * as React from 'react';
 import { useEffect } from 'react';
 import type { Meta } from '@storybook/react';
 import { LOG_LEVELS, LogLevel, StorybookComponent, logInfo } from '@react-simple/react-simple-util';
 import { Stack, Cluster, ObjectRenderer } from '@react-simple/react-simple-ui';
-import { getGlobalState, initGlobalState, removeGlobalState } from './functions';
 import { REACT_SIMPLE_STATE } from "data";
-import { useGlobalStateBatch } from "./useGlobalStateBatch";
-import { useGlobalStateSelectorReadOnly, useGlobalStateSelector } from "./useGlobalStateSelector";
+import { getGlobalState, initGlobalState, removeGlobalState, useGlobalState, useGlobalStateBatch, useGlobalStateReadOnly } from "globalstate";
 
-const TITLE = "Global state / Selector filter";
+const TITLE = "Update filter / Selector / getValue-setValue";
 const DESC = <>
 	The form state is global, but when field values change <strong>only the affected components</strong> get updated.{" "}
 	This is achieved by using the <strong>useGlobalStateSelector()</strong> hook and specifying the <strong>getValue()</strong> selector,{" "}
@@ -24,18 +22,17 @@ const InputComponent = (props: {
 	const { title, fieldName } = props;
 	const scope = `InputComponent[title=${title}]`;
 
-	const [fieldValue, setFieldValue] = useGlobalStateSelector<FormState, string>({
+	const [formState, setFormState] = useGlobalState<FormState>({
 		fullQualifiedName: "form_values", // base state object for the selectors
 		defaultState: {},
-		getValue: state => state[fieldName],
-		setValue: value => ({ [fieldName]: value }),
-		subscriberId: scope
+		subscriberId: scope,
+		updateFilter: { selector: { getValue: t => t[fieldName] } }
 	});
 
 	logInfo(
 		`[${scope}]: render`,
 		{
-			args: { props, formValues: fieldValue },
+			args: { props, formValues: formState },
 			logLevel: REACT_SIMPLE_STATE.LOGGING.logLevel
 		}
 	);
@@ -48,8 +45,8 @@ const InputComponent = (props: {
 				type="text"
 				id={fieldName}
 				name={fieldName}
-				value={fieldValue || ""} // controlled input
-				onChange={evt => setFieldValue(evt.target.value)}
+				value={formState[fieldName] || ""} // controlled input
+				onChange={evt => setFormState({ [fieldName]: evt.target.value })}
 			/>
 
 			<div>Updated: {new Date().toLocaleTimeString()}</div>
@@ -64,18 +61,16 @@ const ReadOnlyComponent = (props: {
 	const { title, fieldName } = props;
 	const scope = `ReadOnlyComponent[title=${title}]`;
 
-	const fieldValue = useGlobalStateSelectorReadOnly<FormState, string>({
-		fullQualifiedName: "form_values", // base object for the selectors
+	const formState = useGlobalStateReadOnly<FormState>({
+		fullQualifiedName: `form_values.${fieldName}`, // base object for the selectors
 		defaultState: {},
-		getValue: state => state[fieldName],
-		subscriberId: scope,
-		onUpdateSkipped: () => console.log(`[${scope}]: Update skipped`)
+		subscriberId: scope
 	});
 
 	logInfo(
 		`[${scope}]: render`,
 		{
-			args: { props, formValues: fieldValue },
+			args: { props, formValues: formState },
 			logLevel: REACT_SIMPLE_STATE.LOGGING.logLevel
 		}
 	);
@@ -83,7 +78,7 @@ const ReadOnlyComponent = (props: {
 	return (
 		<Cluster key={fieldName}>
 			<label htmlFor={fieldName}>{fieldName}:</label>
-			<input type="text" id={fieldName} name={fieldName} readOnly value={fieldValue || ""} />
+			<input type="text" id={fieldName} name={fieldName} readOnly value={formState[fieldName] || ""} />
 			<div>Updated: {new Date().toLocaleTimeString()}</div>
 		</Cluster>
 	);
@@ -92,7 +87,7 @@ const ReadOnlyComponent = (props: {
 const Summary = () => {
 	const scope = "Summary";
 
-	const [{ formValues, globalState }] = useGlobalStateBatch({
+	const { formValues, globalState } = useGlobalStateBatch({
 		fullQualifiedNames: {
 			formValues: "form_values",
 			globalState: ""
@@ -174,7 +169,7 @@ const Template: SC = args => <Component {...args} />;
 
 export const Default: SC = Template.bind({});
 
-const meta: Meta<typeof useGlobalStateSelector> = {
+const meta: Meta<typeof useGlobalState> = {
 	component: Component,
 	title: TITLE,
 	args: {

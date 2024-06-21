@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import {
 	convertArrayToDictionary, isArray, logTrace, mapDictionaryEntries, stringAppend, useForceUpdate, useUniqueId 
 } from "@react-simple/react-simple-util";
-import { getGlobalState, removeGlobalState, setGlobalState } from "./functions";
+import { getGlobalState, removeGlobalState } from "./functions";
 import { REACT_SIMPLE_STATE } from "data";
 import { GlobalStateSubscription, GlobalStateUpdateFilter, subscribeToGlobalState, unsubscribeFromGlobalState } from "subscriptions";
 import { useGlobalStateContext } from "./context";
@@ -15,21 +15,17 @@ export type UseGlobalStateBatchProps<InvariantState> =
 	Omit<UseGlobalStateProps<InvariantState>, "fullQualifiedName" | "mergeState" | "updateFilter" | "defaultState">
 	& {
 		fullQualifiedNames: string[] | Record<string, string>; // names or [resultKey, fullQualifiedName] mapping
-		updateFilter?: GlobalStateUpdateFilter<unknown>; // selectors are not supported here
+		updateFilter?: false | true | GlobalStateUpdateFilter<unknown>; // selectors are not supported here
 	};
 
-export type UseGlobalStateBatchReturn<InvariantState> = [
-	// state
-	{ [fullQualifiedName: string]: InvariantState | undefined }, // state can be uninitialized
-	// setState
-	typeof setGlobalState
-];
+// state can be uninitialized
+export type UseGlobalStateBatchReturn<InvariantState> = { [fullQualifiedName: string]: InvariantState | undefined };
 
 export function useGlobalStateBatch<InvariantState>(
 	props: UseGlobalStateBatchProps<InvariantState>
 ): UseGlobalStateBatchReturn<InvariantState> {
 	const {
-		fullQualifiedNames, updateFilter, subscriberId, ignoreContexts, contextId, enabled = true, globalStateRoot, removeStateOnUnload
+		fullQualifiedNames, updateFilter = false, subscriberId, ignoreContexts, contextId, enabled = true, globalStateRoot, removeStateOnUnload
 	} = props;
 
 	const uniqueId = useUniqueId({ prefix: subscriberId }); // generate permanent uniqueId for this hook instance
@@ -122,16 +118,5 @@ export function useGlobalStateBatch<InvariantState>(
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 		[resolvedFulLQualifiedNames.join(), enabled, subscriberId]);
 
-	const setState: typeof setGlobalState = (t1, t2, t3, t4) => {
-		return setGlobalState(t1, t2, t3, t4 || globalStateRoot);
-	};
-
-	return [
-		currentStates,
-		setState
-	];
+	return currentStates;
 }
-
-export const useGlobalStateBatchReadOnly = <InvariantState>(props: UseGlobalStateBatchProps<InvariantState>) => {
-	return useGlobalStateBatch(props)[0];
-};

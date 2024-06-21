@@ -3,12 +3,10 @@ import { useEffect } from 'react';
 import type { Meta } from '@storybook/react';
 import { LOG_LEVELS, LogLevel, StorybookComponent, logInfo } from '@react-simple/react-simple-util';
 import { Stack, Cluster, ObjectRenderer } from '@react-simple/react-simple-ui';
-import { useGlobalState } from './useGlobalState';
-import { getGlobalState, initGlobalState, removeGlobalState } from './functions';
 import { REACT_SIMPLE_STATE } from "data";
-import { useGlobalStateBatch } from "./useGlobalStateBatch";
+import { getGlobalState, initGlobalState, removeGlobalState, useGlobalState, useGlobalStateBatch } from "globalstate";
 
-const TITLE = "Global state / Condition filter";
+const TITLE = "Update filter / Condition";
 const DESC = <>
 	The form state is global, but when field values change <strong>only the affected components</strong> get updated.{" "}
 	This is achieved by specifying <strong>updateFilter.condition()</strong> to compare field values (<em>oldState</em> vs <em>newState</em>).{" "}
@@ -78,7 +76,7 @@ const ChildComponent = (props: {
 const Summary = () => {
 	const scope = "Summary";
 
-	const [{ formValues, globalState }] = useGlobalStateBatch({
+	const { formValues, globalState } = useGlobalStateBatch({
 		fullQualifiedNames: {
 			formValues: "form_values",
 			globalState: ""

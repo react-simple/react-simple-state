@@ -13,7 +13,6 @@ it('subscribeToGlobalState.rootState', () => {
     fullQualifiedName: "",
     onUpdate
   });
-
   const subscription = REACT_SIMPLE_STATE.ROOT_STATE.subscriptions.subscriptions[uniqueId];
 
   expect(subscription).toBeDefined();

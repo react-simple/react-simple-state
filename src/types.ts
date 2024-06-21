@@ -1,6 +1,6 @@
 import { LogLevel } from "@react-simple/react-simple-util";
 import { GlobalStateContextData } from "globalstate/context/types";
-import { GlobalStateSubscriptionsEntry, GlobalStateUpdateFilterExt } from "subscriptions/types";
+import { GlobalStateSubscriptionsEntry, GlobalStateUpdateFilter } from "subscriptions/types";
 import { ReactSimpleStateDependencyInjection } from "types.di";
 
 export interface GlobalStateRoot<State> {
@@ -29,7 +29,10 @@ export interface InitGlobalStateOptions<State> {
 	// if specified deepCopyObject() will be called for the existing state
 	// default value is REACT_SIMPLE_STATE.DEFAULTS.immutableSetState
 	readonly immutableUpdate?: boolean; 
-	readonly updateStates?: GlobalStateUpdateFilterExt<State>;
+	readonly updateStates?:
+	| false // update nothing
+	| true // update all (this, parent, child states); same as undefined
+	| GlobalStateUpdateFilter<State>;
 }
 
 export interface SetGlobalStateOptions<State> extends InitGlobalStateOptions<State>  {
